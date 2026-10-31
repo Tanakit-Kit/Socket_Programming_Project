@@ -1,149 +1,253 @@
 import socket
 import threading
 import json
+import sqlite3
+from datetime import datetime
 
 HOST = '0.0.0.0'
 PORT = 5000
+DB_FILE = "chat_history.db"
 
-clients = {}  # เก็บ {username: client_socket}
-groups = {}   # เก็บ {group_name: [list_of_member_usernames]}
+clients = {}  # {username: client_socket}
+groups = {}   # {group_name: [list_of_member_usernames]}
 lock = threading.Lock()
 
-# [R2] ฟังก์ชันส่งข้อมูล JSON ผ่าน TCP Socket
+# --- 1. ส่วนจัดการฐานข้อมูล SQLite ---
+def init_db():
+    with sqlite3.connect(DB_FILE) as conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS private_messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        sender TEXT, target TEXT, message TEXT, timestamp TEXT)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS group_messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        group_name TEXT, sender TEXT, message TEXT, timestamp TEXT)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS group_members (
+                        group_name TEXT, username TEXT,
+                        UNIQUE(group_name, username))''')
+        conn.commit()
+
+        groups.clear()
+        c.execute("SELECT group_name, username FROM group_members")
+        for gname, uname in c.fetchall():
+            groups.setdefault(gname, []).append(uname)
+
+def save_private_msg(sender, target, message, ts):
+    with sqlite3.connect(DB_FILE) as conn:
+        conn.execute("INSERT INTO private_messages (sender, target, message, timestamp) VALUES (?, ?, ?, ?)",
+                     (sender, target, message, ts))
+        conn.commit()
+
+def get_private_history(user1, user2):
+    with sqlite3.connect(DB_FILE) as conn:
+        c = conn.cursor()
+        c.execute('''SELECT sender, target, message, timestamp FROM private_messages
+                     WHERE (sender=? AND target=?) OR (sender=? AND target=?)
+                     ORDER BY id ASC''', (user1, user2, user2, user1))
+        return [{"sender": r[0], "target": r[1], "message": r[2], "timestamp": r[3]} for r in c.fetchall()]
+
+def save_group_msg(group_name, sender, message, ts):
+    with sqlite3.connect(DB_FILE) as conn:
+        conn.execute("INSERT INTO group_messages (group_name, sender, message, timestamp) VALUES (?, ?, ?, ?)",
+                     (group_name, sender, message, ts))
+        conn.commit()
+
+def get_group_history(group_name):
+    with sqlite3.connect(DB_FILE) as conn:
+        c = conn.cursor()
+        c.execute('''SELECT sender, message, timestamp FROM group_messages
+                     WHERE group_name=? ORDER BY id ASC''', (group_name,))
+        return [{"sender": r[0], "message": r[1], "timestamp": r[2]} for r in c.fetchall()]
+
+def add_member_to_db(group_name, username):
+    with sqlite3.connect(DB_FILE) as conn:
+        conn.execute("INSERT OR IGNORE INTO group_members (group_name, username) VALUES (?, ?)",
+                     (group_name, username))
+        conn.commit()
+
+# --- 2. ฟังก์ชันช่วยส่งข้อมูลผ่าน Socket (R2) ---
 def send_json(sock, data):
     try:
-        message = json.dumps(data) + "\n"
-        sock.sendall(message.encode('utf-8'))
+        sock.sendall((json.dumps(data) + "\n").encode('utf-8'))
     except Exception:
         pass
 
-# [R4] อัปเดตรายชื่อ Client ทั้งหมดที่ออนไลน์ให้ทุกเครื่องเห็น (รวมชื่อตัวเอง)
 def broadcast_user_list():
     user_list = list(clients.keys())
     for sock in list(clients.values()):
         send_json(sock, {"type": "user_list", "users": user_list})
 
-# [R9] อัปเดตรายชื่อกลุ่มทั้งหมดพร้อมรายชื่อสมาชิกในกลุ่มให้ทุกเครื่องเห็น
 def broadcast_group_list():
     for sock in list(clients.values()):
         send_json(sock, {"type": "group_list", "groups": groups})
+
+# --- 3. ฟังก์ชันจัดการคำสั่งแต่ละประเภท (Handler Pattern แทน if-elif) ---
+def handle_register(client_socket, current_username, msg):
+    req_name = msg.get("username", "").strip()
+    with lock:
+        if not req_name or req_name in clients:
+            send_json(client_socket, {
+                "type": "register_result",
+                "success": False,
+                "message": "ชื่อนี้กำลังออนไลน์อยู่ กรุณาใช้ชื่ออื่น"
+            })
+            return current_username
+
+        clients[req_name] = client_socket
+        send_json(client_socket, {
+            "type": "register_result",
+            "success": True,
+            "username": req_name
+        })
+        broadcast_user_list()
+        broadcast_group_list()
+
+        # เปิดห้องแชทกลุ่มที่เคยเป็นสมาชิกอยู่แล้ว พร้อมโหลดประวัติแชทให้ทันทีโดยไม่ต้องกด Join ใหม่
+        for gname, members in groups.items():
+            if req_name in members:
+                send_json(client_socket, {"type": "group_joined", "group_name": gname})
+                history = get_group_history(gname)
+                send_json(client_socket, {
+                    "type": "group_history",
+                    "group_name": gname,
+                    "history": history
+                })
+        return req_name
+
+def handle_private_msg(client_socket, username, msg):
+    target = msg.get("target")
+    text = msg.get("message")
+    ts = datetime.now().strftime("%H:%M:%S")
+    with lock:
+        save_private_msg(username, target, text, ts)
+        payload = {
+            "type": "private_msg",
+            "sender": username,
+            "target": target,
+            "message": text,
+            "timestamp": ts
+        }
+        if target in clients:
+            send_json(clients[target], payload)
+        if target != username:
+            send_json(client_socket, payload)
+    return username
+
+def handle_get_private_history(client_socket, username, msg):
+    peer = msg.get("peer")
+    with lock:
+        history = get_private_history(username, peer)
+        send_json(client_socket, {
+            "type": "private_history",
+            "peer": peer,
+            "history": history
+        })
+    return username
+
+def handle_create_group(client_socket, username, msg):
+    gname = msg.get("group_name", "").strip()
+    with lock:
+        if gname and gname not in groups:
+            groups[gname] = [username]
+            add_member_to_db(gname, username)
+            broadcast_group_list()
+            send_json(client_socket, {"type": "group_joined", "group_name": gname})
+            send_json(client_socket, {"type": "group_history", "group_name": gname, "history": []})
+    return username
+
+def handle_join_group(client_socket, username, msg):
+    gname = msg.get("group_name", "").strip()
+    with lock:
+        if gname in groups:
+            if username not in groups[gname]:
+                groups[gname].append(username)
+                add_member_to_db(gname, username)
+                broadcast_group_list()
+            send_json(client_socket, {"type": "group_joined", "group_name": gname})
+            history = get_group_history(gname)
+            send_json(client_socket, {
+                "type": "group_history",
+                "group_name": gname,
+                "history": history
+            })
+    return username
+
+def handle_get_group_history(client_socket, username, msg):
+    gname = msg.get("group_name", "").strip()
+    with lock:
+        if gname in groups and username in groups[gname]:
+            history = get_group_history(gname)
+            send_json(client_socket, {
+                "type": "group_history",
+                "group_name": gname,
+                "history": history
+            })
+    return username
+
+def handle_group_msg(client_socket, username, msg):
+    gname = msg.get("group_name")
+    text = msg.get("message")
+    ts = datetime.now().strftime("%H:%M:%S")
+    with lock:
+        if gname in groups and username in groups[gname]:
+            save_group_msg(gname, username, text, ts)
+            payload = {
+                "type": "group_msg",
+                "group_name": gname,
+                "sender": username,
+                "message": text,
+                "timestamp": ts
+            }
+            for member in groups[gname]:
+                if member in clients:
+                    send_json(clients[member], payload)
+    return username
+
+# ตารางจับคู่คำสั่งแทนการใช้ if-elif-else
+ACTION_HANDLERS = {
+    "register": handle_register,
+    "private_msg": handle_private_msg,
+    "get_private_history": handle_get_private_history,
+    "create_group": handle_create_group,
+    "join_group": handle_join_group,
+    "get_group_history": handle_get_group_history,
+    "group_msg": handle_group_msg,
+}
 
 def handle_client(client_socket, addr):
     username = None
     buffer = ""
     try:
         while True:
-            # [R2] รับข้อมูลจาก Client ผ่าน Socket
             data = client_socket.recv(4096)
             if not data:
                 break
             buffer += data.decode('utf-8')
-            
             while "\n" in buffer:
                 line, buffer = buffer.split("\n", 1)
                 if not line.strip():
                     continue
                 msg = json.loads(line)
                 action = msg.get("type")
-
-                # [R3] ตรวจสอบและลงทะเบียนชื่อ Client ไม่ให้ซ้ำกัน (Unique Name)
-                if action == "register":
-                    req_name = msg.get("username", "").strip()
-                    with lock:
-                        if not req_name or req_name in clients:
-                            send_json(client_socket, {
-                                "type": "register_result",
-                                "success": False,
-                                "message": "ชื่อนี้ถูกใช้งานแล้ว กรุณาตั้งชื่อใหม่"
-                            })
-                        else:
-                            username = req_name
-                            clients[username] = client_socket
-                            send_json(client_socket, {
-                                "type": "register_result",
-                                "success": True,
-                                "username": username
-                            })
-                            broadcast_user_list()
-                            broadcast_group_list()
-
-                # [R7] ส่งข้อความแชทส่วนตัว (เห็นเฉพาะผู้ส่งและผู้รับ)
-                elif action == "private_msg":
-                    target = msg.get("target")
-                    text = msg.get("message")
-                    with lock:
-                        if target in clients:
-                            payload = {
-                                "type": "private_msg",
-                                "sender": username,
-                                "target": target,
-                                "message": text
-                            }
-                            # ส่งให้ผู้รับ และส่งกลับให้ผู้ส่งเพื่อแสดงในหน้าต่างแชท
-                            send_json(clients[target], payload)
-                            if target != username:
-                                send_json(client_socket, payload)
-
-                # [R8] สร้างกลุ่มแชทใหม่ โดยเริ่มต้นมีแค่ผู้สร้างเป็นสมาชิกคนเดียว
-                elif action == "create_group":
-                    gname = msg.get("group_name", "").strip()
-                    with lock:
-                        if gname and gname not in groups:
-                            groups[gname] = [username]
-                            broadcast_group_list()
-                            send_json(client_socket, {
-                                "type": "group_joined",
-                                "group_name": gname
-                            })
-
-                # [R10] Client กดเลือกเข้าร่วมกลุ่มแชทด้วยตัวเองเท่านั้น
-                elif action == "join_group":
-                    gname = msg.get("group_name", "").strip()
-                    with lock:
-                        if gname in groups:
-                            if username not in groups[gname]:
-                                groups[gname].append(username)
-                                broadcast_group_list()
-                            send_json(client_socket, {
-                                "type": "group_joined",
-                                "group_name": gname
-                            })
-
-                # [R11] ส่งข้อความเข้ากลุ่มแชท (เห็นเฉพาะสมาชิกที่อยู่ในกลุ่มนั้น)
-                elif action == "group_msg":
-                    gname = msg.get("group_name")
-                    text = msg.get("message")
-                    with lock:
-                        if gname in groups and username in groups[gname]:
-                            payload = {
-                                "type": "group_msg",
-                                "group_name": gname,
-                                "sender": username,
-                                "message": text
-                            }
-                            for member in groups[gname]:
-                                if member in clients:
-                                    send_json(clients[member], payload)
-
+                handler = ACTION_HANDLERS.get(action)
+                if handler:
+                    username = handler(client_socket, username, msg)
     except Exception as e:
         print(f"[ERROR] {addr}: {e}")
     finally:
         with lock:
             if username and username in clients:
                 del clients[username]
-                for gname in list(groups.keys()):
-                    if username in groups[gname]:
-                        groups[gname].remove(username)
                 broadcast_user_list()
-                broadcast_group_list()
         client_socket.close()
 
 def start_server():
+    init_db()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, PORT))
     server_socket.listen()
-    print(f"[SERVER RUNNING] Listening on {HOST}:{PORT}")
+    print(f"[SERVER RUNNING] Listening on {HOST}:{PORT} (SQLite DB Enabled)")
     while True:
         client_sock, addr = server_socket.accept()
         threading.Thread(target=handle_client, args=(client_sock, addr), daemon=True).start()
