@@ -192,9 +192,9 @@ class ChatClientGUI:
             self.groups_data = msg.get("groups", {})
             self.group_listbox.delete(0, tk.END)
             for gname, members in self.groups_data.items():
-                members_str = ", ".join(members)
+                count = len(members)
                 prefix = "✓ " if self.username in members else ""
-                self.group_listbox.insert(tk.END, f"{prefix}{gname} | สมาชิก: [{members_str}]")
+                self.group_listbox.insert(tk.END, f"{prefix}{gname} | สมาชิก: {count} คน")
 
         elif mtype == "private_msg":
             sender = msg.get("sender")
