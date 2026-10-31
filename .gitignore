@@ -1,0 +1,11 @@
+.env
+.env.local
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.DS_Store
+Thumbs.db
+.kilo/
+.vscode/
+.idea/

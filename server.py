@@ -1,12 +1,18 @@
+import os
 import socket
 import threading
 import json
+import time
+from datetime import datetime
+
+from gemini_service import call_gemini_api
 
 HOST = '0.0.0.0'
 PORT = 5000
 
 clients = {}  # เก็บ {username: client_socket}
 groups = {}   # เก็บ {group_name: [list_of_member_usernames]}
+chat_history = []  # เก็บประวัติแชททั้งหมด {sender, target, message, timestamp}
 lock = threading.Lock()
 
 # [R2] ฟังก์ชันส่งข้อมูล JSON ผ่าน TCP Socket
@@ -27,6 +33,16 @@ def broadcast_user_list():
 def broadcast_group_list():
     for sock in list(clients.values()):
         send_json(sock, {"type": "group_list", "groups": groups})
+
+def save_to_history(sender, target, message):
+    chat_history.append({
+        "sender": sender,
+        "target": target,
+        "message": message,
+        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    if len(chat_history) > 200:
+        del chat_history[:-200]
 
 def handle_client(client_socket, addr):
     username = None
@@ -72,7 +88,30 @@ def handle_client(client_socket, addr):
                     target = msg.get("target")
                     text = msg.get("message")
                     with lock:
-                        if target in clients:
+                        if text and text.strip().startswith("/bot"):
+                            question = text.strip()
+                            if question.startswith("/bot"):
+                                question = question[len("/bot"):].strip()
+                            save_to_history(username, target or "", text)
+                            # สะท้อนคำถามต้นฉบับกลับให้ผู้ส่งเห็นในแชทเดิม (ไม่ให้แชทหาย)
+                            user_payload = {
+                                "type": "private_msg",
+                                "sender": username,
+                                "target": target,
+                                "message": text
+                            }
+                            send_json(client_socket, user_payload)
+                            time.sleep(0.15)
+                            reply = call_gemini_api(question, chat_history)
+                            bot_payload = {
+                                "type": "private_msg",
+                                "sender": "GeminiBot",
+                                "target": target or "GeminiBot",
+                                "message": reply
+                            }
+                            send_json(client_socket, bot_payload)
+                        elif target in clients:
+                            save_to_history(username, target, text)
                             payload = {
                                 "type": "private_msg",
                                 "sender": username,
@@ -115,15 +154,43 @@ def handle_client(client_socket, addr):
                     text = msg.get("message")
                     with lock:
                         if gname in groups and username in groups[gname]:
-                            payload = {
-                                "type": "group_msg",
-                                "group_name": gname,
-                                "sender": username,
-                                "message": text
-                            }
-                            for member in groups[gname]:
-                                if member in clients:
-                                    send_json(clients[member], payload)
+                            if text and text.strip().startswith("/bot"):
+                                question = text.strip()
+                                if question.startswith("/bot"):
+                                    question = question[len("/bot"):].strip()
+                                save_to_history(username, gname, text)
+                                # สะท้อนคำถามต้นฉบับให้สมาชิกในกลุ่มเห็น (ไม่ให้แชทหาย)
+                                user_payload = {
+                                    "type": "group_msg",
+                                    "group_name": gname,
+                                    "sender": username,
+                                    "message": text
+                                }
+                                for member in groups[gname]:
+                                    if member in clients:
+                                        send_json(clients[member], user_payload)
+                                time.sleep(0.15)
+                                reply = call_gemini_api(question, chat_history)
+                                bot_payload = {
+                                    "type": "group_msg",
+                                    "group_name": gname,
+                                    "sender": "GeminiBot",
+                                    "message": reply
+                                }
+                                for member in groups[gname]:
+                                    if member in clients:
+                                        send_json(clients[member], bot_payload)
+                            else:
+                                save_to_history(username, gname, text)
+                                payload = {
+                                    "type": "group_msg",
+                                    "group_name": gname,
+                                    "sender": username,
+                                    "message": text
+                                }
+                                for member in groups[gname]:
+                                    if member in clients:
+                                        send_json(clients[member], payload)
 
     except Exception as e:
         print(f"[ERROR] {addr}: {e}")

@@ -226,8 +226,13 @@ class ChatClientApp:
             sender = msg.get("sender")
             target = msg.get("target")
             text = msg.get("message")
-            peer = target if sender == self.username else sender
-            room = self.get_or_create_private_room(peer, switch_to=(sender == self.username))
+            if sender == "GeminiBot":
+                peer = target
+                switch_to = True
+            else:
+                peer = target if sender == self.username else sender
+                switch_to = (sender == self.username)
+            room = self.get_or_create_private_room(peer, switch_to=switch_to)
             room.append_message(sender, text)
 
         # [R8 & R10] เมื่อสร้างหรือกดเข้าร่วมกลุ่มสำเร็จ ให้เปิดห้องแชทของกลุ่มนั้น
@@ -240,7 +245,7 @@ class ChatClientApp:
             gname = msg.get("group_name")
             sender = msg.get("sender")
             text = msg.get("message")
-            room = self.get_or_create_group_room(gname, switch_to=False)
+            room = self.get_or_create_group_room(gname, switch_to=(sender == "GeminiBot"))
             room.append_message(sender, text)
 
 
