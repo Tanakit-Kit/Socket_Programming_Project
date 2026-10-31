@@ -251,45 +251,63 @@ def handle_client(client_socket, addr):
                         question = text.strip()
                         if question.startswith("/bot"):
                             question = question[len("/bot"):].strip()
+                        ts = datetime.now().strftime("%H:%M:%S")
                         if action == "private_msg":
                             target = msg.get("target")
+                            save_private_msg(username, target, text, ts)
                             save_to_history(username, target or "", text)
                             user_payload = {
                                 "type": "private_msg",
                                 "sender": username,
                                 "target": target,
-                                "message": text
+                                "message": text,
+                                "timestamp": ts
                             }
-                            send_json(client_socket, user_payload)
+                            if target in clients:
+                                send_json(clients[target], user_payload)
+                            if target != username:
+                                send_json(client_socket, user_payload)
                             time.sleep(0.15)
                             reply = call_gemini_api(question, chat_history)
+                            ts2 = datetime.now().strftime("%H:%M:%S")
+                            save_private_msg("GeminiBot", target, reply, ts2)
+                            save_to_history("GeminiBot", target or "", reply)
                             bot_payload = {
                                 "type": "private_msg",
                                 "sender": "GeminiBot",
                                 "target": target or "GeminiBot",
-                                "message": reply
+                                "message": reply,
+                                "timestamp": ts2
                             }
+                            if target in clients:
+                                send_json(clients[target], bot_payload)
                             send_json(client_socket, bot_payload)
                         elif action == "group_msg":
                             gname = msg.get("group_name")
                             if gname in groups and username in groups[gname]:
+                                save_group_msg(gname, username, text, ts)
                                 save_to_history(username, gname, text)
                                 user_payload = {
                                     "type": "group_msg",
                                     "group_name": gname,
                                     "sender": username,
-                                    "message": text
+                                    "message": text,
+                                    "timestamp": ts
                                 }
                                 for member in groups[gname]:
                                     if member in clients:
                                         send_json(clients[member], user_payload)
                                 time.sleep(0.15)
                                 reply = call_gemini_api(question, chat_history)
+                                ts2 = datetime.now().strftime("%H:%M:%S")
+                                save_group_msg(gname, "GeminiBot", reply, ts2)
+                                save_to_history("GeminiBot", gname, reply)
                                 bot_payload = {
                                     "type": "group_msg",
                                     "group_name": gname,
                                     "sender": "GeminiBot",
-                                    "message": reply
+                                    "message": reply,
+                                    "timestamp": ts2
                                 }
                                 for member in groups[gname]:
                                     if member in clients:
