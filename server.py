@@ -218,6 +218,7 @@ async def handler(websocket):
     try:
         async for message in websocket:
             msg = json.loads(message)
+            print(f"[SERVER] Received: {msg}")
             action = msg.get("type")
             handler_fn = ACTION_HANDLERS.get(action)
             if handler_fn:

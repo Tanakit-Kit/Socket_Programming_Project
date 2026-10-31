@@ -101,9 +101,7 @@ export default function Home() {
             },
           ];
         });
-        if (msg.sender === username) {
-          setActiveRoomId(roomId);
-        }
+        setActiveRoomId(roomId);
         break;
       }
       case "private_history": {
@@ -217,6 +215,7 @@ export default function Home() {
             },
           ];
         });
+        setActiveRoomId(roomId);
         break;
       }
     }
@@ -293,6 +292,14 @@ export default function Home() {
 
   const isMember = (gname: string) => {
     return (groups[gname] || []).includes(username);
+  };
+
+  const closeTab = (e: React.MouseEvent, roomId: string) => {
+    e.stopPropagation();
+    setRooms((prev) => prev.filter((r) => r.id !== roomId));
+    if (activeRoomId === roomId) {
+      setActiveRoomId(rooms.length > 1 ? (rooms.find((r) => r.id !== roomId)?.id || null) : null);
+    }
   };
 
   if (registerOpen) {
@@ -422,31 +429,50 @@ export default function Home() {
         </aside>
 
         <main className="flex-1 bg-white relative flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4" ref={scrollRef}>
-            {rooms.map((room) => (
-              <section
-                key={room.id}
-                className={`rounded-2xl p-4 mb-4 border ${
-                  activeRoomId === room.id
-                    ? "border-green-500 bg-green-50 shadow-sm"
-                    : "border-green-100 bg-white"
-                } cursor-pointer hover:border-green-300 transition`}
-                onClick={() => setActiveRoomId(room.id)}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className={`font-bold ${activeRoomId === room.id ? "text-green-700" : "text-green-600"}`}>
-                    {room.name}
-                  </h3>
+          {rooms.length > 0 && (
+            <div className="border-b border-green-100 shrink-0">
+              <div className="flex overflow-x-auto pb-1 px-2 gap-1 scrollbar-hide">
+                {rooms.map((room) => (
+                  <div
+                    key={room.id}
+                    onClick={() => setActiveRoomId(room.id)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-t-xl border-b-2 ${
+                      activeRoomId === room.id
+                        ? "border-green-500 bg-green-50 text-green-700 font-medium"
+                        : "border-transparent bg-white text-green-600 hover:bg-green-50"
+                    } cursor-pointer`}
+                  >
+                    <span className={`text-sm ${room.type === "private" ? "text-green-500" : "text-green-600"}`}>
+                      {room.type === "private" ? "👤" : "👥"}
+                    </span>
+                    <span className="text-sm truncate max-w-[120px]">{room.name}</span>
+                    <button
+                      onClick={(e) => closeTab(e, room.id)}
+                      className="ml-1 opacity-0 group-hover:opacity-100 hover:bg-red-100 text-red-500 rounded-full p-1 transition"
+                      title="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto p-6" ref={scrollRef}>
+            {activeRoom ? (
+              <div className="space-y-4 max-h-full">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold text-green-700 text-lg">{activeRoom.name}</h3>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    activeRoomId === room.id
-                      ? "bg-green-500 text-white"
-                      : "bg-green-100 text-green-500"
+                    activeRoom.type === "private" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                   }`}>
-                    {room.type}
+                    {activeRoom.type === "private" ? "Private" : "Group"}
                   </span>
                 </div>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                  {room.messages.map((m, i) => (
+                <div className="space-y-2 max-h-[calc(100vh-240px)] overflow-y-auto pr-2">
+                  {activeRoom.messages.map((m, i) => (
                     <div
                       key={i}
                       className={`flex ${
@@ -456,12 +482,12 @@ export default function Home() {
                       <div
                         className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
                           m.sender === username
-                            ? "bg-green-500 text-white rounded-tr-none"
-                            : "bg-green-100 text-green-800 rounded-tl-none"
+                            ? "bg-green-500 text-white rounded-tr-none shadow-sm"
+                            : "bg-white border border-green-100 text-green-800 rounded-tl-none shadow-sm"
                         }`}
                       >
                         <div className="flex items-baseline gap-1">
-                          <span className={m.sender === username ? "" : "font-semibold"}>
+                          <span className={m.sender === username ? "" : "font-semibold text-green-700"}>
                             {m.sender}
                           </span>
                           {m.timestamp && (
@@ -473,11 +499,15 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              </section>
-            ))}
-            {activeRoomId && !activeRoom && (
-              <div className="text-center py-10 text-green-400 text-sm">
-                Select a chat room to start messaging
+                {activeRoom.messages.length === 0 && (
+                  <div className="text-center py-10 text-green-400 text-sm">
+                    No messages yet. Start the conversation!
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-green-400">
+                <p className="text-sm">Select a chat tab to start messaging</p>
               </div>
             )}
           </div>
