@@ -225,7 +225,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const socket = new WebSocket(process.env.NEXT_PUBLIC_CHAT_WS_URL!);
+    const url = process.env.NEXT_PUBLIC_CHAT_WS_URL;
+    if (!url) return;
+    const socket = new WebSocket(url);
     wsRef.current = socket;
     socket.onopen = () => setConnected(true);
     socket.onclose = () => { setConnected(false); setRegisterOpen(true); usernameRef.current = ""; setUsername(""); setRooms([]); setActiveRoomId(null); };
@@ -238,6 +240,8 @@ export default function Home() {
       }
     };
     return () => {
+      socket.onclose = null;
+      socket.onmessage = null;
       socket.close();
       wsRef.current = null;
     };
