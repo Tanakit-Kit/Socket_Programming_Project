@@ -664,7 +664,7 @@ export default function Home() {
   const activeRoom = rooms.find((r) => r.id === activeRoomId);
 
   return (
-    <div className="flex flex-col flex-1 h-screen bg-green-50 overflow-hidden">
+    <div className="fixed inset-0 flex h-dvh min-h-0 flex-col bg-green-50 overflow-hidden">
       {/* Top Header */}
       <header className="h-16 bg-white border-b border-green-100 flex items-center justify-between px-6 shrink-0 shadow-2xs">
         <div className="flex items-center gap-3">
@@ -705,11 +705,11 @@ export default function Home() {
       </header>
 
       {/* Main Content Split */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         {/* Left Sidebar: Online Clients (R4) & Chat Groups (R8, R9, R10) */}
-        <aside className="w-80 bg-white border-r border-green-100 shrink-0 flex flex-col overflow-hidden">
+        <aside className="w-80 min-h-0 bg-white border-r border-green-100 shrink-0 flex flex-col overflow-hidden">
           {/* [R4] Online Clients Section */}
-          <div className="p-4 border-b border-green-100 flex flex-col max-h-[45%]">
+          <div className="p-4 border-b border-green-100 flex min-h-0 flex-col max-h-[45%]">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xs font-bold text-heading uppercase tracking-wider">
                 Online Clients ({onlineUsers.length})
@@ -717,7 +717,7 @@ export default function Home() {
               <span className="text-[11px] text-accent">คลิกหรือดับเบิลคลิกเพื่อแชท</span>
             </div>
 
-            <div className="space-y-1 overflow-y-auto flex-1 pr-1">
+            <div className="space-y-1 overflow-y-auto overscroll-contain min-h-0 flex-1 pr-1">
               {onlineUsers.map((u) => {
                 const isMe = u === username;
                 const isSelected = !isMe && selectedUser === u;
@@ -784,7 +784,7 @@ export default function Home() {
           </div>
 
           {/* [R8, R9, R10] Chat Groups Section */}
-          <div className="p-4 flex-1 flex flex-col overflow-hidden">
+          <div className="p-4 min-h-0 flex-1 flex flex-col overflow-hidden">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xs font-bold text-heading uppercase tracking-wider">
                 Chat Groups ({Object.keys(groups).length})
@@ -792,7 +792,7 @@ export default function Home() {
               <span className="text-[11px] text-accent">เลือกเพื่อเปิดอ่าน/เข้ากลุ่ม</span>
             </div>
 
-            <div className="space-y-2 mb-3 overflow-y-auto flex-1 pr-1">
+            <div className="space-y-2 mb-3 overflow-y-auto overscroll-contain min-h-0 flex-1 pr-1">
               {Object.entries(groups).map(([gname, members]) => {
                 const member = isMember(gname);
                 const isSelected = selectedGroup === gname;
@@ -897,7 +897,7 @@ export default function Home() {
         </aside>
 
         {/* Right Panel: Chat Rooms & Message Window (R5, R6, R7, R11) */}
-        <main className="flex-1 bg-white relative flex flex-col overflow-hidden">
+        <main className="min-h-0 min-w-0 flex-1 bg-white relative flex flex-col overflow-hidden">
           {/* Room Tabs Bar (R5) */}
           {rooms.length > 0 && (
             <div className="border-b border-green-100 bg-green-50/40 shrink-0">
@@ -990,7 +990,7 @@ export default function Home() {
               {/* Scrollable Messages Area (R6) */}
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-6 space-y-3 bg-gradient-to-b from-green-50/30 to-green-50/60"
+                className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-6 space-y-3 bg-gradient-to-b from-green-50/30 to-green-50/60"
               >
                 {activeRoom.messages.map((m, i) => {
                   const isMine = m.sender === username;
@@ -1008,7 +1008,7 @@ export default function Home() {
                         )}
                       </div>
                       <div
-                        className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm break-words shadow-2xs ${
+                        className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm break-words [overflow-wrap:anywhere] shadow-2xs ${
                           isMine
                             ? "bg-green-500 text-inverse rounded-tr-xs"
                             : "bg-white border border-green-100 text-content-strong rounded-tl-xs"
@@ -1053,7 +1053,7 @@ export default function Home() {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={!activeRoomId || !connected}
-                className="flex-1 px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-content-strong placeholder-input-hint disabled:opacity-50 disabled:bg-green-50/40"
+                className="min-w-0 flex-1 px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-content-strong placeholder-input-hint disabled:opacity-50 disabled:bg-green-50/40"
               />
               <button
                 type="button"
