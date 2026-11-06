@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 type Message = {
@@ -565,9 +566,7 @@ export default function Home() {
       <div className="flex flex-col flex-1 min-h-screen items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4">
         <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border border-green-100">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-green-500 flex items-center justify-center text-inverse font-bold text-xl shadow-sm">
-              L
-            </div>
+            <Image src="/brand-logo.png" alt="ช่องClaude Chat logo" width={40} height={40} className="shrink-0 rounded-xl object-contain" priority />
             <div>
               <h1 className="text-2xl font-bold text-content">LINE-like Chat</h1>
               <p className="text-xs text-accent">Socket Programming Project</p>
@@ -668,9 +667,7 @@ export default function Home() {
       {/* Top Header */}
       <header className="h-16 bg-white border-b border-green-100 flex items-center justify-between px-6 shrink-0 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-green-500 flex items-center justify-center text-inverse font-bold shadow-2xs">
-            L
-          </div>
+          <Image src="/brand-logo.png" alt="ช่องClaude Chat logo" width={32} height={32} className="shrink-0 rounded-xl object-contain" priority />
           <div>
             <div className="flex items-center gap-2">
               <span className="text-content font-bold">LINE-like Chat</span>
