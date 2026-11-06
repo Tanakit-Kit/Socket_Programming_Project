@@ -34,3 +34,22 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
             server.init_db()
             self.assertIn('alice', server.groups['room:one'])
             self.assertEqual(server.get_group_history('room:one')[-1]['sender'], 'GeminiBot')
+
+    async def test_user_directory_survives_disconnect_and_restart(self):
+        with tempfile.TemporaryDirectory() as directory:
+            server.DB_FILE = str(Path(directory) / 'chat.db')
+            server.clients.clear()
+            server.init_db()
+            a, b = Socket(), Socket()
+            await server.handle_register(a, None, {'username': 'alice'})
+            await server.handle_register(b, None, {'username': 'bob'})
+            del server.clients['bob']
+            await server.broadcast_user_list()
+            self.assertEqual(a.messages[-1]['users'], ['alice'])
+            self.assertEqual(a.messages[-1]['all_users'], ['alice', 'bob'])
+            server.clients.clear()
+            server.init_db()
+            await server.handle_register(a, None, {'username': 'alice'})
+            directory_message = next(m for m in reversed(a.messages) if m['type'] == 'user_list')
+            self.assertEqual(directory_message['all_users'], ['alice', 'bob'])
+            self.assertEqual(directory_message['users'], ['alice'])

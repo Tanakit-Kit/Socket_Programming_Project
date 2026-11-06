@@ -21,7 +21,7 @@ type Room = {
 
 type ServerMsg =
   | { type: "register_result"; success: boolean; username?: string; message?: string }
-  | { type: "user_list"; users: string[] }
+  | { type: "user_list"; users: string[]; all_users?: string[] }
   | { type: "group_list"; groups: Record<string, string[]> }
   | { type: "private_msg"; sender: string; target: string; peer?: string; message: string; timestamp: string }
   | { type: "private_history"; peer: string; history: Array<{ sender: string; message: string; timestamp: string }> }
@@ -43,6 +43,7 @@ export default function Home() {
   const [registerOpen, setRegisterOpen] = useState(true);
   const [regName, setRegName] = useState("");
   const [regError, setRegError] = useState("");
+  const [allUsers, setAllUsers] = useState<string[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [groups, setGroups] = useState<Record<string, string[]>>({});
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -168,6 +169,7 @@ export default function Home() {
 
         case "user_list":
           setOnlineUsers(msg.users);
+          setAllUsers(msg.all_users ?? msg.users);
           break;
 
         case "group_list":
@@ -376,6 +378,7 @@ export default function Home() {
         setRooms([]);
         setActiveRoomId(null);
         setOnlineUsers([]);
+        setAllUsers([]);
         setGroups({});
         setSelectedUser(null);
         setSelectedGroup(null);
@@ -712,14 +715,15 @@ export default function Home() {
           <div className="p-4 border-b border-brand-100 flex min-h-0 flex-col max-h-[45%]">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xs font-bold text-heading uppercase tracking-wider">
-                Online Clients ({onlineUsers.length})
+                Users ({onlineUsers.length} Online Now)
               </h2>
               <span className="text-[11px] text-accent">คลิกหรือดับเบิลคลิกเพื่อแชท</span>
             </div>
 
             <div className="space-y-1 overflow-y-auto overscroll-contain min-h-0 flex-1 pr-1">
-              {onlineUsers.map((u) => {
+              {allUsers.map((u) => {
                 const isMe = u === username;
+                const isOnline = onlineUsers.includes(u);
                 const isSelected = !isMe && selectedUser === u;
                 const room = rooms.find((r) => r.id === `private:${u}`);
                 const unreadCount = room?.unread || 0;
@@ -745,7 +749,7 @@ export default function Home() {
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className="w-2 h-2 rounded-full bg-brand-500 shrink-0" />
+                      <span aria-label={isOnline ? "Online" : "Offline"} title={isOnline ? "Online" : "Offline"} className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-success-400" : "bg-offline"}`} />
                       <span className="truncate">
                         {u}
                         {isMe && (
@@ -768,8 +772,8 @@ export default function Home() {
                   </div>
                 );
               })}
-              {onlineUsers.length === 0 && (
-                <p className="text-xs text-muted py-3 text-center">ไม่มีผู้ใช้ออนไลน์</p>
+              {allUsers.length === 0 && (
+                <p className="text-xs text-muted py-3 text-center">ยังไม่มีผู้ใช้</p>
               )}
             </div>
 
@@ -1034,7 +1038,7 @@ export default function Home() {
               </div>
               <p className="text-base font-medium text-heading">ยังไม่ได้เลือกห้องสนทนา</p>
               <p className="text-xs text-accent mt-1">
-                คลิกเลือกเพื่อนในรายการ Online Clients หรือเลือกกลุ่มใน Chat Groups ทางซ้ายมือเพื่อเริ่มแชท
+                คลิกเลือกเพื่อนในรายการ Users หรือเลือกกลุ่มใน Chat Groups ทางซ้ายมือเพื่อเริ่มแชท
               </p>
             </div>
           )}
