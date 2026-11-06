@@ -27,11 +27,8 @@ _load_env_file()
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 # โมเดล Free Tier ของ Google AI Studio (เรียงจากใหม่/เร็ว → เก่า/สำรอง)
-GEMINI_MODELS = [
-    "gemini-3.5-flash-lite",
-    "gemini-2.5-flash",
-]
-GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
+GEMINI_MODELS = os.environ["GEMINI_MODELS"].split(",")
+GEMINI_BASE_URL = os.environ["GEMINI_BASE_URL"]
 
 _gemini_available = None
 _active_model = None
@@ -47,7 +44,7 @@ def load_gemini_models():
             headers={'Content-Type': 'application/json'},
             method='GET'
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=float(os.environ["GEMINI_TIMEOUT"])) as resp:
             data = json.loads(resp.read().decode('utf-8'))
         models = data.get('models', [])
         _gemini_available = set(m.get('name', '').replace('models/', '') for m in models)
@@ -66,7 +63,7 @@ def gemini_candidate_models():
     return ordered
 
 def build_gemini_payload(question, chat_history):
-    recent = chat_history[-20:]
+    recent = chat_history[-int(os.environ["GEMINI_CONTEXT_MESSAGES"]):]
     context_lines = []
     for entry in recent:
         context_lines.append(f"{entry['sender']} -> {entry['target']}: {entry['message']}")
@@ -81,7 +78,7 @@ def build_gemini_payload(question, chat_history):
     )
     return {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048},
+        "generationConfig": {"temperature": float(os.environ["GEMINI_TEMPERATURE"]), "maxOutputTokens": int(os.environ["GEMINI_MAX_OUTPUT_TOKENS"])},
     }
 
 def extract_gemini_text(result):
@@ -103,7 +100,7 @@ def call_gemini_api(question, chat_history):
 
     for model_name in gemini_candidate_models():
         url = f'{GEMINI_BASE_URL}/models/{model_name}:generateContent?key={GEMINI_API_KEY}'
-        for attempt in range(2):
+        for attempt in range(int(os.environ["GEMINI_ATTEMPTS"])):
             try:
                 req = urllib.request.Request(
                     url,
@@ -111,7 +108,7 @@ def call_gemini_api(question, chat_history):
                     headers={'Content-Type': 'application/json'},
                     method='POST'
                 )
-                with urllib.request.urlopen(req, timeout=15) as resp:
+                with urllib.request.urlopen(req, timeout=float(os.environ["GEMINI_TIMEOUT"])) as resp:
                     result = json.loads(resp.read().decode('utf-8'))
                 text = extract_gemini_text(result)
                 if text:
@@ -131,7 +128,7 @@ def call_gemini_api(question, chat_history):
                     break
                 if e.code in (429, 503) and attempt == 0:
                     print(f"[GEMINI] {model_name} ตอบ {e.code} ลองใหม่ใน 3 วินาที...")
-                    time.sleep(3)
+                    time.sleep(float(os.environ["GEMINI_RETRY_DELAY"]))
                     continue
                 print(f"[GEMINI] {model_name} ข้อผิดพลาด HTTP {e.code}: {body[:200]}")
                 break
