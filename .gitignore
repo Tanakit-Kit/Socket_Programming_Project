@@ -10,3 +10,12 @@ Thumbs.db
 .kilo/
 .vscode/
 .idea/
+
+.env*
+!.env.template
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+*.db-*
+.venv/
