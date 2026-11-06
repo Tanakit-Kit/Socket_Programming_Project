@@ -27,6 +27,13 @@ def init_db():
         c.execute('''CREATE TABLE IF NOT EXISTS group_members (
                         group_name TEXT, username TEXT,
                         UNIQUE(group_name, username))''')
+        c.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY)")
+        c.execute("""INSERT OR IGNORE INTO users (username)
+                     SELECT username FROM group_members
+                     UNION SELECT sender FROM private_messages
+                     UNION SELECT target FROM private_messages
+                     UNION SELECT sender FROM group_messages""")
+        c.execute("DELETE FROM users WHERE username IS NULL OR username = '' OR username = 'GeminiBot'")
         columns = {row[1] for row in c.execute("PRAGMA table_info(private_messages)")}
         if "display_sender" not in columns:
             c.execute("ALTER TABLE private_messages ADD COLUMN display_sender TEXT")
@@ -78,9 +85,11 @@ async def send_json(websocket, data):
         pass
 
 async def broadcast_user_list():
-    user_list = list(clients.keys())
+    with sqlite3.connect(DB_FILE) as conn:
+        user_list = [row[0] for row in conn.execute("SELECT username FROM users ORDER BY username COLLATE NOCASE, username")]
+    online_users = list(clients.keys())
     for ws in list(clients.values()):
-        await send_json(ws, {"type": "user_list", "users": user_list})
+        await send_json(ws, {"type": "user_list", "users": online_users, "all_users": user_list})
 
 async def broadcast_group_list():
     for ws in list(clients.values()):
@@ -98,6 +107,8 @@ async def handle_register(websocket, current_username, msg):
             })
             return current_username
 
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.execute("INSERT OR IGNORE INTO users (username) VALUES (?)", (req_name,))
         clients[req_name] = websocket
         await send_json(websocket, {
             "type": "register_result",
