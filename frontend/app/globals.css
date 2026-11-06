@@ -17,6 +17,10 @@
   --color-muted: var(--color-green-400);
   --color-error: var(--color-red-500);
   --color-inverse: var(--color-white);
+  --color-content-strong: var(--color-green-900);
+  --color-error-strong: var(--color-red-600);
+  --color-group-label: var(--color-emerald-800);
+  --color-offline: var(--color-gray-400);
   --color-input-hint: var(--color-green-300);
 
   --font-sans: var(--font-app-sans);
