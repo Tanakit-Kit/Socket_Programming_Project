@@ -1,5 +1,11 @@
 "use client";
 
+import AgentPanel, {
+  type AgentDecision,
+  type AgentMode,
+  type AgentProposal,
+  type AgentRoomState,
+} from "../components/AgentPanel";
 import ThemeToggle from "../components/ThemeToggle";
 import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -23,11 +29,27 @@ type ServerMsg =
   | { type: "register_result"; success: boolean; username?: string; message?: string }
   | { type: "user_list"; users: string[]; all_users?: string[] }
   | { type: "group_list"; groups: Record<string, string[]> }
-  | { type: "private_msg"; sender: string; target: string; peer?: string; message: string; timestamp: string }
+  | { type: "private_msg"; sender: string; target: string; peer?: string; message: string; timestamp: string; agent?: boolean }
   | { type: "private_history"; peer: string; history: Array<{ sender: string; message: string; timestamp: string }> }
   | { type: "group_joined"; group_name: string }
   | { type: "group_history"; group_name: string; history: Array<{ sender: string; message: string; timestamp: string }> }
-  | { type: "group_msg"; group_name: string; sender: string; message: string; timestamp: string };
+  | { type: "group_msg"; group_name: string; sender: string; message: string; timestamp: string; agent?: boolean }
+  | { type: "agent_state"; room_type: string; room: string; mode: AgentMode; status: AgentRoomState["status"] }
+  | {
+      type: "agent_proposal";
+      proposal_id: string;
+      room_type: string;
+      room: string;
+      kind: AgentProposal["kind"];
+      text?: string;
+      summary?: string;
+      options?: string[];
+      can_go_back?: boolean;
+    }
+  | { type: "agent_proposal_closed"; proposal_id: string; room_type: string; room: string; status: string }
+  | { type: "agent_error"; room_type?: string; room?: string; message: string };
+
+const AGENT_OFF: AgentRoomState = { mode: "off", status: "idle" };
 
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
@@ -52,6 +74,10 @@ export default function Home() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [inputText, setInputText] = useState("");
   const [newGroupName, setNewGroupName] = useState("");
+  // ข้อมูล Agent แยกตาม room id (private:<peer>, group:<name>)
+  const [agentStates, setAgentStates] = useState<Record<string, AgentRoomState>>({});
+  const [agentProposals, setAgentProposals] = useState<Record<string, AgentProposal>>({});
+  const [agentErrors, setAgentErrors] = useState<Record<string, string>>({});
 
   // Sync refs with state so WebSocket message handler always sees current values without re-connecting
   useEffect(() => {
@@ -154,6 +180,54 @@ export default function Home() {
       const currentUser = usernameRef.current;
 
       switch (msg.type) {
+        case "agent_state": {
+          const roomId = `${msg.room_type}:${msg.room}`;
+          setAgentStates((prev) => ({ ...prev, [roomId]: { mode: msg.mode, status: msg.status } }));
+          if (msg.status === "thinking") {
+            setAgentErrors((prev) => {
+              const next = { ...prev };
+              delete next[roomId];
+              return next;
+            });
+          }
+          break;
+        }
+
+        case "agent_proposal": {
+          const roomId = `${msg.room_type}:${msg.room}`;
+          setAgentProposals((prev) => ({
+            ...prev,
+            [roomId]: {
+              id: msg.proposal_id,
+              kind: msg.kind,
+              text: msg.text,
+              summary: msg.summary,
+              options: msg.options,
+              canGoBack: msg.can_go_back,
+            },
+          }));
+          break;
+        }
+
+        case "agent_proposal_closed": {
+          const roomId = `${msg.room_type}:${msg.room}`;
+          setAgentProposals((prev) => {
+            if (prev[roomId]?.id !== msg.proposal_id) return prev;
+            const next = { ...prev };
+            delete next[roomId];
+            return next;
+          });
+          break;
+        }
+
+        case "agent_error": {
+          const roomId = msg.room_type && msg.room ? `${msg.room_type}:${msg.room}` : activeRoomIdRef.current;
+          if (roomId) {
+            setAgentErrors((prev) => ({ ...prev, [roomId]: msg.message }));
+          }
+          break;
+        }
+
         case "register_result":
           if (msg.success) {
             const registeredName = msg.username || "";
@@ -184,7 +258,7 @@ export default function Home() {
             request_private_history(peer);
           }
           const isCurrentRoom = activeRoomIdRef.current === roomId;
-          const shouldSwitch = msg.sender === currentUser || !activeRoomIdRef.current;
+          const shouldSwitch = (msg.sender === currentUser && !msg.agent) || !activeRoomIdRef.current;
 
           setRooms((prev) => {
             const existing = prev.find((r) => r.id === roomId);
@@ -318,7 +392,7 @@ export default function Home() {
           const gname = msg.group_name;
           const roomId = `group:${gname}`;
           const isCurrentRoom = activeRoomIdRef.current === roomId;
-          const shouldSwitch = msg.sender === currentUser || !activeRoomIdRef.current;
+          const shouldSwitch = (msg.sender === currentUser && !msg.agent) || !activeRoomIdRef.current;
 
           setRooms((prev) => {
             const existing = prev.find((r) => r.id === roomId);
@@ -382,6 +456,9 @@ export default function Home() {
         setGroups({});
         setSelectedUser(null);
         setSelectedGroup(null);
+        setAgentStates({});
+        setAgentProposals({});
+        setAgentErrors({});
       };
       socket.onerror = () => {
         setConnected(false);
@@ -447,6 +524,18 @@ export default function Home() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const dismissAgentError = (roomId: string) => {
+    setAgentErrors((prev) => {
+      const next = { ...prev };
+      delete next[roomId];
+      return next;
+    });
+  };
+
+  const decideAgentProposal = (proposalId: string, decision: AgentDecision, details?: { text?: string; option?: number }) => {
+    sendJson({ type: "agent_decide", proposal_id: proposalId, decision, ...details });
   };
 
   const openPrivateChat = (peer: string) => {
@@ -776,15 +865,6 @@ export default function Home() {
                 <p className="text-xs text-muted py-3 text-center">ยังไม่มีผู้ใช้</p>
               )}
             </div>
-
-            <button
-              type="button"
-              onClick={handleOpenSelectedPrivateChat}
-              disabled={!selectedUser || selectedUser === username}
-              className="w-full mt-3 py-2 px-3 truncate rounded-xl border border-brand-300 text-heading text-sm font-medium hover:bg-brand-50 transition disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
-            >
-              เปิดแชทส่วนตัว {selectedUser && selectedUser !== username ? `กับ ${selectedUser}` : "(Private Chat)"}
-            </button>
           </div>
 
           {/* [R8, R9, R10] Chat Groups Section */}
@@ -884,7 +964,7 @@ export default function Home() {
                 </button>
               </form>
 
-              <button
+              {/* <button
                 type="button"
                 onClick={handleOpenOrJoinSelectedGroup}
                 disabled={!selectedGroup}
@@ -895,7 +975,7 @@ export default function Home() {
                     ? `เปิดอ่านกลุ่ม "${selectedGroup}"`
                     : `เข้าร่วมกลุ่ม "${selectedGroup}" (Join)`
                   : "เปิดอ่าน / เข้าร่วมกลุ่ม"}
-              </button>
+              </button> */}
             </div>
           </div>
         </aside>
@@ -928,6 +1008,14 @@ export default function Home() {
                       {room.unread > 0 && (
                         <span className="bg-danger-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                           {room.unread}
+                        </span>
+                      )}
+                      {agentProposals[room.id] && (
+                        <span
+                          title="Agent รอให้คุณอนุมัติ"
+                          className="bg-brand-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                        >
+                          AI
                         </span>
                       )}
                       <button
@@ -1041,6 +1129,26 @@ export default function Home() {
                 คลิกเลือกเพื่อนในรายการ Users หรือเลือกกลุ่มใน Chat Groups ทางซ้ายมือเพื่อเริ่มแชท
               </p>
             </div>
+          )}
+
+          {/* Personal AI Agent controls: visible only to this user */}
+          {activeRoom && (
+            <AgentPanel
+              key={activeRoom.id}
+              state={agentStates[activeRoom.id] ?? AGENT_OFF}
+              proposal={agentProposals[activeRoom.id]}
+              error={agentErrors[activeRoom.id]}
+              connected={connected}
+              onSetMode={(mode) =>
+                sendJson({ type: "agent_set_mode", room_type: activeRoom.type, room: activeRoom.target, mode })
+              }
+              onInvoke={(instruction) =>
+                sendJson({ type: "agent_invoke", room_type: activeRoom.type, room: activeRoom.target, instruction })
+              }
+              onCancel={() => sendJson({ type: "agent_cancel", room_type: activeRoom.type, room: activeRoom.target })}
+              onDecide={decideAgentProposal}
+              onDismissError={() => dismissAgentError(activeRoom.id)}
+            />
           )}
 
           {/* Bottom Message Input Bar (R6) */}

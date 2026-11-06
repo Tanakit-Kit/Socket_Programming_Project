@@ -15,7 +15,7 @@ class Socket:
 
 class ChatTests(unittest.IsolatedAsyncioTestCase):
     async def test_private_bot_history_and_group_restore(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
             server.DB_FILE = str(Path(directory) / 'chat.db')
             server.init_db()
             a, b = Socket(), Socket()
@@ -36,7 +36,7 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(server.get_group_history('room:one')[-1]['sender'], 'GeminiBot')
 
     async def test_user_directory_survives_disconnect_and_restart(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
             server.DB_FILE = str(Path(directory) / 'chat.db')
             server.clients.clear()
             server.init_db()

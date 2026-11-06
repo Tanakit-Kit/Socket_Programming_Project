@@ -89,12 +89,12 @@ def extract_gemini_text(result):
             return parts[0].get('text', 'ขออภัย ไม่สามารถตอบคำถามนี้ได้ในขณะนี้')
     return None
 
-def call_gemini_api(question, chat_history):
-    global _active_model
-    if not GEMINI_API_KEY:
-        return "ขออภัย ยังไม่ได้ตั้งค่า GEMINI_API_KEY บนเซิร์ฟเวอร์ กรุณาติดต่อผู้ดูแลระบบ"
+class GeminiError(Exception):
+    """ข้อผิดพลาดที่ Agent แจ้งเฉพาะเจ้าของ (ข้อความต้องไม่มี API key)"""
 
-    payload = build_gemini_payload(question, chat_history)
+def _try_models(payload, is_usable):
+    """ลองทีละโมเดลพร้อม retry คืน (ผลลัพธ์, None) หรือ (None, ข้อผิดพลาดล่าสุด)"""
+    global _active_model
     data = json.dumps(payload).encode('utf-8')
     last_error = None
 
@@ -110,22 +110,24 @@ def call_gemini_api(question, chat_history):
                 )
                 with urllib.request.urlopen(req, timeout=float(os.environ["GEMINI_TIMEOUT"])) as resp:
                     result = json.loads(resp.read().decode('utf-8'))
-                text = extract_gemini_text(result)
-                if text:
+                if is_usable(result):
                     if _active_model != model_name:
                         _active_model = model_name
                         print(f"[GEMINI] ใช้โมเดล: {model_name}")
-                    return text
+                    return result, None
+                print(f"[GEMINI] {model_name} ไม่ได้ส่งคำตอบที่ใช้ได้กลับมา")
                 last_error = Exception("ไม่ได้รับข้อความตอบจาก Gemini")
             except urllib.error.HTTPError as e:
                 try:
                     body = e.read().decode('utf-8')
                 except Exception:
                     body = str(e)
-                last_error = e
                 if e.code == 404:
+                    # โมเดลนี้แค่ใช้กับคีย์ไม่ได้ จึงไม่ทับสาเหตุจริงจากโมเดลก่อนหน้า
+                    last_error = last_error or e
                     print(f"[GEMINI] ข้ามโมเดล {model_name} (ไม่รองรับคีย์นี้)")
                     break
+                last_error = e
                 if e.code in (429, 503) and attempt == 0:
                     print(f"[GEMINI] {model_name} ตอบ {e.code} ลองใหม่ใน 3 วินาที...")
                     time.sleep(float(os.environ["GEMINI_RETRY_DELAY"]))
@@ -140,6 +142,44 @@ def call_gemini_api(question, chat_history):
                 last_error = e
                 print(f"[GEMINI] {model_name} ข้อผิดพลาด: {e}")
                 break
+
+    return None, last_error
+
+def _model_content(result):
+    candidates = result.get('candidates', [])
+    content = candidates[0].get('content', {}) if candidates else {}
+    return content if content.get('parts') else None
+
+def call_gemini_with_tools(system, contents, tools):
+    """เรียก Gemini แบบ function calling คืน content ของโมเดล หรือ raise GeminiError"""
+    if not GEMINI_API_KEY:
+        raise GeminiError("ยังไม่ได้ตั้งค่า GEMINI_API_KEY บนเซิร์ฟเวอร์")
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system}]},
+        "contents": contents,
+        "tools": [{"functionDeclarations": tools}],
+        "generationConfig": {"temperature": float(os.environ["GEMINI_TEMPERATURE"]), "maxOutputTokens": int(os.environ["GEMINI_MAX_OUTPUT_TOKENS"])},
+    }
+    result, last_error = _try_models(payload, _model_content)
+    if result is not None:
+        return _model_content(result)
+    if isinstance(last_error, urllib.error.HTTPError):
+        if last_error.code == 429:
+            raise GeminiError("โควตา Gemini หมดชั่วคราว กรุณาลองใหม่ภายหลัง")
+        raise GeminiError(f"Gemini API ตอบข้อผิดพลาด (HTTP {last_error.code})")
+    if isinstance(last_error, urllib.error.URLError):
+        raise GeminiError("ไม่สามารถเชื่อมต่อ Gemini API ได้")
+    raise GeminiError("Gemini ไม่ได้ส่งคำตอบกลับมา")
+
+def call_gemini_api(question, chat_history):
+    if not GEMINI_API_KEY:
+        return "ขออภัย ยังไม่ได้ตั้งค่า GEMINI_API_KEY บนเซิร์ฟเวอร์ กรุณาติดต่อผู้ดูแลระบบ"
+
+    payload = build_gemini_payload(question, chat_history)
+    result, last_error = _try_models(payload, extract_gemini_text)
+    if result is not None:
+        return extract_gemini_text(result)
 
     if isinstance(last_error, urllib.error.HTTPError):
         try:
