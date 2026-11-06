@@ -308,31 +308,31 @@ export default function Home() {
       <div className="flex flex-col flex-1 items-center justify-center bg-green-50">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-green-100">
           <div className="flex items-center gap-2 mb-6">
-            <span className="text-green-500">▋</span>
-            <h1 className="text-2xl font-bold text-green-700">LINE-like Chat</h1>
+            <span className="text-accent">▋</span>
+            <h1 className="text-2xl font-bold text-heading">LINE-like Chat</h1>
           </div>
-          <p className="text-green-600 text-sm mb-6">Register your name to join the chat</p>
+          <p className="text-secondary text-sm mb-6">Register your name to join the chat</p>
           <form onSubmit={handleRegister} className="space-y-3">
             <input
               type="text"
               placeholder="ตั้งชื่อของคุณ"
               value={regName}
               onChange={(e) => setRegName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-green-800 placeholder-green-300"
+              className="w-full px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-content placeholder-input-hint"
               autoFocus
             />
             {regError && (
-              <p className="text-red-500 text-sm">{regError}</p>
+              <p className="text-error text-sm">{regError}</p>
             )}
             <button
               type="submit"
               disabled={!regName.trim() || !connected}
-              className="w-full py-3 rounded-xl bg-green-500 text-white font-semibold disabled:opacity-50 hover:bg-green-600 transition"
+              className="w-full py-3 rounded-xl bg-green-500 text-inverse font-semibold disabled:opacity-50 hover:bg-green-600 transition"
             >
               {connected ? "Join Chat" : "Connecting..."}
             </button>
           </form>
-          <p className="mt-4 text-xs text-green-400">
+          <p className="mt-4 text-xs text-muted">
             Server status: {connected ? "Connected" : "Disconnecting"}
           </p>
         </div>
@@ -347,24 +347,24 @@ export default function Home() {
       <header className="h-16 bg-white border-b border-green-100 flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-          <span className="text-green-700 font-semibold">LINE-like Chat</span>
+          <span className="text-heading font-semibold">LINE-like Chat</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-green-600 text-sm">{username}</span>
+          <span className="text-secondary text-sm">{username}</span>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-80 bg-white border-r border-green-100 shrink-0 flex flex-col">
           <div className="p-4 border-b border-green-50">
-            <h2 className="text-xs font-bold text-green-600 uppercase tracking-wider">Online Clients</h2>
+            <h2 className="text-xs font-bold text-secondary uppercase tracking-wider">Online Clients</h2>
             <div className="mt-2 space-y-1">
               {onlineUsers.map((u) => (
                 <div
                   key={u}
                   onClick={() => openPrivateChat(u)}
                   className={`cursor-pointer px-3 py-2 rounded-lg text-sm hover:bg-green-50 ${
-                    u === username ? "bg-green-100 font-medium" : "text-green-800"
+                    u === username ? "bg-green-100 font-medium" : "text-content"
                   }`}
                 >
                   {u}{u === username && " (You)"}
@@ -372,7 +372,7 @@ export default function Home() {
               ))}
             </div>
             <button
-              className="w-full mt-3 py-2 rounded-lg border border-green-200 text-green-600 text-sm font-medium hover:bg-green-50"
+              className="w-full mt-3 py-2 rounded-lg border border-green-200 text-secondary text-sm font-medium hover:bg-green-50"
               disabled
             >
               เปิดแชทส่วนตัว (Private Chat)
@@ -380,7 +380,7 @@ export default function Home() {
           </div>
 
           <div className="p-4 flex-1 overflow-y-auto">
-            <h2 className="text-xs font-bold text-green-600 uppercase tracking-wider mb-3">Chat Groups</h2>
+            <h2 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Chat Groups</h2>
             <div className="space-y-2 mb-4">
               {Object.entries(groups).map(([gname, members]) => (
                 <div
@@ -388,17 +388,17 @@ export default function Home() {
                   onClick={() => joinGroup(gname)}
                   className={`cursor-pointer p-3 rounded-xl border text-sm ${
                     isMember(gname)
-                      ? "bg-green-50 border-green-200 text-green-800"
-                      : "border-green-100 text-green-600 hover:bg-green-50"
+                      ? "bg-green-50 border-green-200 text-content"
+                      : "border-green-100 text-secondary hover:bg-green-50"
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <span className="font-medium">{isMember(gname) ? "✓ " : ""}{gname}</span>
-                    <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded">
+                    <span className="text-[10px] bg-green-100 text-secondary px-2 py-0.5 rounded">
                       {members.length}
                     </span>
                   </div>
-                  <div className="mt-1 text-[11px] text-green-500 truncate">
+                  <div className="mt-1 text-[11px] text-accent truncate">
                     {members.join(", ")}
                   </div>
                 </div>
@@ -414,13 +414,13 @@ export default function Home() {
               />
               <button
                 onClick={createGroup}
-                className="w-full py-2 rounded-lg bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition disabled:opacity-50"
+                className="w-full py-2 rounded-lg bg-green-500 text-inverse text-sm font-semibold hover:bg-green-600 transition disabled:opacity-50"
                 disabled={!newGroupName.trim()}
               >
                 สร้างกลุ่มใหม่
               </button>
               <button
-                className="w-full py-2 rounded-lg border border-green-200 text-green-600 text-sm font-medium hover:bg-green-50 mt-2"
+                className="w-full py-2 rounded-lg border border-green-200 text-secondary text-sm font-medium hover:bg-green-50 mt-2"
                 disabled
               >
                 เปิดอ่าน / เข้าร่วมกลุ่ม
@@ -442,13 +442,13 @@ export default function Home() {
                 onClick={() => setActiveRoomId(room.id)}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className={`font-bold ${activeRoomId === room.id ? "text-green-700" : "text-green-600"}`}>
+                  <h3 className={`font-bold ${activeRoomId === room.id ? "text-heading" : "text-secondary"}`}>
                     {room.name}
                   </h3>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     activeRoomId === room.id
-                      ? "bg-green-500 text-white"
-                      : "bg-green-100 text-green-500"
+                      ? "bg-green-500 text-inverse"
+                      : "bg-green-100 text-accent"
                   }`}>
                     {room.type}
                   </span>
@@ -464,8 +464,8 @@ export default function Home() {
                       <div
                         className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
                           m.sender === username
-                            ? "bg-green-500 text-white rounded-tr-none"
-                            : "bg-green-100 text-green-800 rounded-tl-none"
+                            ? "bg-green-500 text-inverse rounded-tr-none"
+                            : "bg-green-100 text-content rounded-tl-none"
                         }`}
                       >
                         <div className="flex items-baseline gap-1">
@@ -484,7 +484,7 @@ export default function Home() {
               </section>
             ))}
             {activeRoomId && !activeRoom && (
-              <div className="text-center py-10 text-green-400 text-sm">
+              <div className="text-center py-10 text-muted text-sm">
                 Select a chat room to start messaging
               </div>
             )}
@@ -499,12 +499,12 @@ export default function Home() {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={!activeRoomId}
-                className="flex-1 px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-green-800 disabled:opacity-50 disabled:border-green-100"
+                className="flex-1 px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-content disabled:opacity-50 disabled:border-green-100"
               />
               <button
                 onClick={handleSend}
                 disabled={!inputText.trim() || !activeRoomId}
-                className="px-6 py-3 rounded-xl bg-green-500 text-white font-semibold disabled:opacity-50 hover:bg-green-600 transition disabled:hover:bg-green-500"
+                className="px-6 py-3 rounded-xl bg-green-500 text-inverse font-semibold disabled:opacity-50 hover:bg-green-600 transition disabled:hover:bg-green-500"
               >
                 Send
               </button>

@@ -8,6 +8,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Text colors: shared by Tailwind text-* and placeholder-* utilities. */
+  --color-content: var(--color-green-800);
+  --color-heading: var(--color-green-700);
+  --color-secondary: var(--color-green-600);
+  --color-accent: var(--color-green-500);
+  --color-muted: var(--color-green-400);
+  --color-error: var(--color-red-500);
+  --color-inverse: var(--color-white);
+  --color-input-hint: var(--color-green-300);
+
   --font-sans: var(--font-app-sans);
   --font-mono: var(--font-app-mono);
 }
