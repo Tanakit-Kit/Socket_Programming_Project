@@ -1,5 +1,6 @@
 "use client";
 
+import ThemeToggle from "../components/ThemeToggle";
 import Image from "next/image";
 import { useState, useEffect, useRef, useCallback } from "react";
 
@@ -563,12 +564,13 @@ export default function Home() {
 
   if (registerOpen) {
     return (
-      <div className="flex flex-col flex-1 min-h-screen items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border border-green-100">
+      <div className="flex flex-col flex-1 min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-brand-50 to-brand-50 p-4">
+        <div className="fixed right-4 top-4 z-50"><ThemeToggle /></div>
+        <div className="w-full max-w-md bg-surface rounded-3xl shadow-xl p-8 border border-brand-100">
           <div className="flex items-center gap-3 mb-2">
-            <Image src="/brand-logo.png" alt="ช่องClaude Chat logo" width={40} height={40} className="shrink-0 rounded-xl object-contain" priority />
+            <Image src="/brand-logo.png" alt="ช่องclaude Chat logo" width={40} height={40} className="shrink-0 rounded-xl object-contain" priority />
             <div>
-              <h1 className="text-2xl font-bold text-content">LINE-like Chat</h1>
+              <h1 className="text-2xl font-bold text-content">ช่องclaude Chat</h1>
               <p className="text-xs text-accent">Socket Programming Project</p>
             </div>
           </div>
@@ -587,13 +589,13 @@ export default function Home() {
                 placeholder="ตั้งชื่อของคุณ (ห้ามซ้ำกับคนที่ออนไลน์อยู่)..."
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-content-strong placeholder-input-hint transition"
+                className="w-full px-4 py-3 rounded-xl border border-brand-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-content-strong placeholder-input-hint transition"
                 autoFocus
               />
             </div>
 
             {regError && (
-              <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-error-strong text-sm flex items-center gap-2">
+              <div className="px-4 py-2.5 rounded-xl bg-danger-50 border border-danger-200 text-error-strong text-sm flex items-center gap-2">
                 <span>⚠️</span>
                 <span>{regError}</span>
               </div>
@@ -602,17 +604,17 @@ export default function Home() {
             <button
               type="submit"
               disabled={!regName.trim() || !connected}
-              className="w-full py-3.5 rounded-xl bg-green-500 text-inverse font-semibold shadow-sm disabled:opacity-50 hover:bg-green-600 active:scale-[0.99] transition cursor-pointer disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl bg-brand-500 text-inverse font-semibold shadow-sm disabled:opacity-50 hover:bg-brand-600 active:scale-[0.99] transition cursor-pointer disabled:cursor-not-allowed"
             >
               {connected ? "เข้าสู่ระบบแชท (Join Chat)" : "กำลังเชื่อมต่อ Server..."}
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-green-100 flex items-center justify-between text-xs">
+          <div className="mt-6 pt-4 border-t border-brand-100 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
               <span
                 className={`w-2.5 h-2.5 rounded-full ${
-                  connected ? "bg-green-500 animate-pulse" : "bg-red-400"
+                  connected ? "bg-success-400 animate-pulse" : "bg-danger-400"
                 }`}
               />
               <span className={connected ? "text-secondary font-medium" : "text-error font-medium"}>
@@ -639,13 +641,13 @@ export default function Home() {
                 type="text"
                 value={serverUrl}
                 onChange={(e) => setServerUrl(e.target.value)}
-                className="flex-1 px-3 py-1.5 rounded-lg border border-green-200 text-content focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="flex-1 px-3 py-1.5 rounded-lg border border-brand-200 text-content focus:outline-none focus:ring-1 focus:ring-brand-500"
                 placeholder={process.env.NEXT_PUBLIC_CHAT_WS_URL || "WebSocket server URL"}
               />
               <button
                 type="button"
                 onClick={reconnectSocket}
-                className="px-3 py-1.5 rounded-lg bg-green-100 text-heading font-medium hover:bg-green-200 transition cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-brand-100 text-heading font-medium hover:bg-brand-200 transition cursor-pointer"
               >
                 Connect
               </button>
@@ -663,22 +665,22 @@ export default function Home() {
   const activeRoom = rooms.find((r) => r.id === activeRoomId);
 
   return (
-    <div className="fixed inset-0 flex h-dvh min-h-0 flex-col bg-green-50 overflow-hidden">
+    <div className="fixed inset-0 flex h-dvh min-h-0 flex-col bg-brand-50 overflow-hidden">
       {/* Top Header */}
-      <header className="h-16 bg-white border-b border-green-100 flex items-center justify-between px-6 shrink-0 shadow-2xs">
+      <header className="h-16 bg-surface border-b border-brand-100 flex items-center justify-between px-6 shrink-0 shadow-2xs">
         <div className="flex items-center gap-3">
-          <Image src="/brand-logo.png" alt="ช่องClaude Chat logo" width={32} height={32} className="shrink-0 rounded-xl object-contain" priority />
+          <Image src="/brand-logo.png" alt="ช่องclaude Chat logo" width={32} height={32} className="shrink-0 rounded-xl object-contain" priority />
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-content font-bold">LINE-like Chat</span>
+              <span className="text-content font-bold">ช่องclaude Chat</span>
               <span
                 className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                  connected ? "bg-green-100 text-heading" : "bg-red-100 text-error-strong"
+                  connected ? "bg-brand-100 text-heading" : "bg-danger-100 text-error-strong"
                 }`}
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    connected ? "bg-green-500 animate-pulse" : "bg-red-500"
+                    connected ? "bg-brand-500 animate-pulse" : "bg-danger-500"
                   }`}
                 />
                 {connected ? "Online" : "Offline"}
@@ -688,13 +690,14 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-green-50 border border-green-200 px-3 py-1.5 rounded-xl">
+          <ThemeToggle />
+          <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 px-3 py-1.5 rounded-xl">
             <span className="text-sm">👤</span>
             <span className="text-content text-sm font-semibold">{username}</span>
           </div>
           <button
             onClick={handleLogout}
-            className="text-xs px-3 py-1.5 rounded-lg border border-green-200 text-heading hover:bg-red-50 hover:text-error-strong hover:border-red-200 transition cursor-pointer"
+            className="text-xs px-3 py-1.5 rounded-lg border border-brand-200 text-heading hover:bg-danger-50 hover:text-error-strong hover:border-danger-200 transition cursor-pointer"
           >
             เปลี่ยนชื่อ / ออกจากระบบ
           </button>
@@ -704,9 +707,9 @@ export default function Home() {
       {/* Main Content Split */}
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         {/* Left Sidebar: Online Clients (R4) & Chat Groups (R8, R9, R10) */}
-        <aside className="w-80 min-h-0 bg-white border-r border-green-100 shrink-0 flex flex-col overflow-hidden">
+        <aside className="w-80 min-h-0 bg-surface border-r border-brand-100 shrink-0 flex flex-col overflow-hidden">
           {/* [R4] Online Clients Section */}
-          <div className="p-4 border-b border-green-100 flex min-h-0 flex-col max-h-[45%]">
+          <div className="p-4 border-b border-brand-100 flex min-h-0 flex-col max-h-[45%]">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xs font-bold text-heading uppercase tracking-wider">
                 Online Clients ({onlineUsers.length})
@@ -735,14 +738,14 @@ export default function Home() {
                     }}
                     className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm transition border ${
                       isMe
-                        ? "bg-green-50/60 border-green-100 text-heading cursor-default"
+                        ? "bg-brand-50/60 border-brand-100 text-heading cursor-default"
                         : isSelected
-                        ? "bg-green-100/80 border-green-300 text-content-strong font-medium cursor-pointer"
-                        : "border-transparent hover:bg-green-50 text-content cursor-pointer"
+                        ? "bg-brand-100/80 border-brand-300 text-content-strong font-medium cursor-pointer"
+                        : "border-transparent hover:bg-brand-50 text-content cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-brand-500 shrink-0" />
                       <span className="truncate">
                         {u}
                         {isMe && (
@@ -753,11 +756,11 @@ export default function Home() {
                     {!isMe && (
                       <div className="flex items-center gap-1.5 shrink-0">
                         {unreadCount > 0 && (
-                          <span className="bg-red-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          <span className="bg-danger-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                             {unreadCount}
                           </span>
                         )}
-                        <span className="text-[11px] text-secondary opacity-0 group-hover:opacity-100 bg-white px-2 py-0.5 rounded-md border border-green-200 transition">
+                        <span className="text-[11px] text-secondary opacity-0 group-hover:opacity-100 bg-surface px-2 py-0.5 rounded-md border border-brand-200 transition">
                           แชท
                         </span>
                       </div>
@@ -774,7 +777,7 @@ export default function Home() {
               type="button"
               onClick={handleOpenSelectedPrivateChat}
               disabled={!selectedUser || selectedUser === username}
-              className="w-full mt-3 py-2 px-3 truncate rounded-xl border border-green-300 text-heading text-sm font-medium hover:bg-green-50 transition disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              className="w-full mt-3 py-2 px-3 truncate rounded-xl border border-brand-300 text-heading text-sm font-medium hover:bg-brand-50 transition disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
             >
               เปิดแชทส่วนตัว {selectedUser && selectedUser !== username ? `กับ ${selectedUser}` : "(Private Chat)"}
             </button>
@@ -808,10 +811,10 @@ export default function Home() {
                     onDoubleClick={() => openOrJoinGroup(gname)}
                     className={`cursor-pointer p-3 rounded-xl border text-sm transition ${
                       isSelected
-                        ? "bg-green-100/70 border-green-400 text-content-strong shadow-2xs"
+                        ? "bg-brand-100/70 border-brand-400 text-content-strong shadow-2xs"
                         : member
-                        ? "bg-green-50/70 border-green-200 text-content hover:bg-green-50"
-                        : "border-green-100 text-heading hover:bg-green-50/50"
+                        ? "bg-brand-50/70 border-brand-200 text-content hover:bg-brand-50"
+                        : "border-brand-100 text-heading hover:bg-brand-50/50"
                     }`}
                   >
                     <div className="flex justify-between items-center gap-2">
@@ -821,11 +824,11 @@ export default function Home() {
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {unreadCount > 0 && (
-                          <span className="bg-red-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          <span className="bg-danger-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                             {unreadCount}
                           </span>
                         )}
-                        <span className="text-[10px] bg-green-100 text-heading px-2 py-0.5 rounded-full font-medium">
+                        <span className="text-[10px] bg-brand-100 text-heading px-2 py-0.5 rounded-full font-medium">
                           {members.length} คน
                         </span>
                         <button
@@ -837,8 +840,8 @@ export default function Home() {
                           }}
                           className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition cursor-pointer ${
                             member
-                              ? "bg-white border border-green-200 text-heading hover:bg-green-100"
-                              : "bg-green-500 text-inverse hover:bg-green-600"
+                              ? "bg-surface border border-brand-200 text-heading hover:bg-brand-100"
+                              : "bg-brand-500 text-inverse hover:bg-brand-600"
                           }`}
                         >
                           {member ? "เปิดแชท" : "เข้าร่วม"}
@@ -859,18 +862,18 @@ export default function Home() {
             </div>
 
             {/* Create & Join Group Controls */}
-            <div className="space-y-2 pt-2 border-t border-green-100 shrink-0">
+            <div className="space-y-2 pt-2 border-t border-brand-100 shrink-0">
               <form onSubmit={handleCreateGroup} className="flex w-full gap-1.5">
                 <input
                   type="text"
                   placeholder="ตั้งชื่อกลุ่มแชทใหม่..."
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-content-strong placeholder-input-hint"
+                  className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-brand-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm text-content-strong placeholder-input-hint"
                 />
                 <button
                   type="submit"
-                  className="px-3 py-2 rounded-xl bg-green-500 text-inverse text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50 shrink-0 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded-xl bg-brand-500 text-inverse text-xs font-semibold hover:bg-brand-600 transition disabled:opacity-50 shrink-0 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed"
                   disabled={!newGroupName.trim()}
                 >
                   สร้างกลุ่มใหม่
@@ -881,7 +884,7 @@ export default function Home() {
                 type="button"
                 onClick={handleOpenOrJoinSelectedGroup}
                 disabled={!selectedGroup}
-                className="w-full py-2 px-3 truncate rounded-xl border border-green-300 text-heading text-sm font-medium hover:bg-green-50 transition disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                className="w-full py-2 px-3 truncate rounded-xl border border-brand-300 text-heading text-sm font-medium hover:bg-brand-50 transition disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 {selectedGroup
                   ? isMember(selectedGroup)
@@ -894,10 +897,10 @@ export default function Home() {
         </aside>
 
         {/* Right Panel: Chat Rooms & Message Window (R5, R6, R7, R11) */}
-        <main className="min-h-0 min-w-0 flex-1 bg-white relative flex flex-col overflow-hidden">
+        <main className="min-h-0 min-w-0 flex-1 bg-surface relative flex flex-col overflow-hidden">
           {/* Room Tabs Bar (R5) */}
           {rooms.length > 0 && (
-            <div className="border-b border-green-100 bg-green-50/40 shrink-0">
+            <div className="border-b border-brand-100 bg-brand-50/40 shrink-0">
               <div className="flex overflow-x-auto pt-2 px-3 gap-1.5">
                 {rooms.map((room) => {
                   const isActive = activeRoomId === room.id;
@@ -908,8 +911,8 @@ export default function Home() {
                       onMouseDown={(e) => e.preventDefault()}
                       className={`group flex items-center gap-2 px-4 py-2 rounded-t-xl border-b-2 transition cursor-pointer select-none ${
                         isActive
-                          ? "border-green-500 bg-white text-content font-semibold shadow-2xs"
-                          : "border-transparent bg-green-100/50 text-secondary hover:bg-white/80"
+                          ? "border-brand-500 bg-surface text-content font-semibold shadow-2xs"
+                          : "border-transparent bg-brand-100/50 text-secondary hover:bg-surface/80"
                       }`}
                     >
                       <span className="text-sm">
@@ -919,14 +922,14 @@ export default function Home() {
                         {room.type === "private" ? `ส่วนตัว: ${room.target}` : `กลุ่ม: ${room.target}`}
                       </span>
                       {room.unread > 0 && (
-                        <span className="bg-red-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        <span className="bg-danger-500 text-inverse text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                           {room.unread}
                         </span>
                       )}
                       <button
                         type="button"
                         onClick={(e) => closeTab(e, room.id)}
-                        className="ml-1 opacity-60 group-hover:opacity-100 hover:bg-red-100 hover:text-error-strong text-heading rounded-full w-5 h-5 flex items-center justify-center text-xs transition cursor-pointer"
+                        className="ml-1 opacity-60 group-hover:opacity-100 hover:bg-danger-100 hover:text-error-strong text-heading rounded-full w-5 h-5 flex items-center justify-center text-xs transition cursor-pointer"
                         title="ปิดแท็บแชทนี้"
                       >
                         ✕
@@ -942,15 +945,15 @@ export default function Home() {
           {activeRoom ? (
             <>
               {/* Active Room Subheader */}
-              <div className="px-6 py-3 border-b border-green-100 bg-white flex items-center justify-between shrink-0">
+              <div className="px-6 py-3 border-b border-brand-100 bg-surface flex items-center justify-between shrink-0">
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-content text-base">{activeRoom.name}</h3>
                     <span
                       className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
                         activeRoom.type === "private"
-                          ? "bg-green-100 text-heading"
-                          : "bg-emerald-100 text-group-label"
+                          ? "bg-brand-100 text-heading"
+                          : "bg-brand-100 text-group-label"
                       }`}
                     >
                       {activeRoom.type === "private" ? "Private Chat" : "Group Chat"}
@@ -976,7 +979,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleRefreshHistory}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-green-200 text-heading hover:bg-green-50 transition cursor-pointer flex items-center gap-1"
+                  className="text-xs px-3 py-1.5 rounded-lg border border-brand-200 text-heading hover:bg-brand-50 transition cursor-pointer flex items-center gap-1"
                   title="ดึงประวัติการสนทนาจากฐานข้อมูล"
                 >
                   <span>🔄</span>
@@ -987,7 +990,7 @@ export default function Home() {
               {/* Scrollable Messages Area (R6) */}
               <div
                 ref={scrollRef}
-                className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-6 space-y-3 bg-gradient-to-b from-green-50/30 to-green-50/60"
+                className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-6 space-y-3 bg-gradient-to-b from-brand-50/30 to-brand-50/60"
               >
                 {activeRoom.messages.map((m, i) => {
                   const isMine = m.sender === username;
@@ -1007,8 +1010,8 @@ export default function Home() {
                       <div
                         className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm break-words [overflow-wrap:anywhere] shadow-2xs ${
                           isMine
-                            ? "bg-green-500 text-inverse rounded-tr-xs"
-                            : "bg-white border border-green-100 text-content-strong rounded-tl-xs"
+                            ? "bg-brand-500 text-inverse rounded-tr-xs"
+                            : "bg-surface border border-brand-100 text-content-strong rounded-tl-xs"
                         }`}
                       >
                         {m.message}
@@ -1025,8 +1028,8 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted p-6 bg-green-50/20">
-              <div className="w-16 h-16 rounded-3xl bg-green-100 flex items-center justify-center text-3xl mb-3">
+            <div className="flex-1 flex flex-col items-center justify-center text-muted p-6 bg-brand-50/20">
+              <div className="w-16 h-16 rounded-3xl bg-brand-100 flex items-center justify-center text-3xl mb-3">
                 💬
               </div>
               <p className="text-base font-medium text-heading">ยังไม่ได้เลือกห้องสนทนา</p>
@@ -1037,7 +1040,7 @@ export default function Home() {
           )}
 
           {/* Bottom Message Input Bar (R6) */}
-          <div className="bg-white border-t border-green-100 p-4 shrink-0">
+          <div className="bg-surface border-t border-brand-100 p-4 shrink-0">
             <div className="flex gap-2 max-w-3xl mx-auto">
               <input
                 type="text"
@@ -1050,13 +1053,13 @@ export default function Home() {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={!activeRoomId || !connected}
-                className="min-w-0 flex-1 px-4 py-3 rounded-xl border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-content-strong placeholder-input-hint disabled:opacity-50 disabled:bg-green-50/40"
+                className="min-w-0 flex-1 px-4 py-3 rounded-xl border border-brand-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-content-strong placeholder-input-hint disabled:opacity-50 disabled:bg-brand-50/40"
               />
               <button
                 type="button"
                 onClick={handleSend}
                 disabled={!inputText.trim() || !activeRoomId || !connected}
-                className="px-6 py-3 rounded-xl bg-green-500 text-inverse font-semibold disabled:opacity-50 hover:bg-green-600 transition cursor-pointer disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-xl bg-brand-500 text-inverse font-semibold disabled:opacity-50 hover:bg-brand-600 transition cursor-pointer disabled:cursor-not-allowed"
               >
                 Send
               </button>

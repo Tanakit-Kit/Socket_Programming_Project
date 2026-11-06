@@ -2,37 +2,107 @@
 @source "..";
 
 :root {
+  /* Change this palette to retheme the entire chat UI. */
+
+  --theme-success-400: oklch(80.443% 0.22458 138.562);
+
+  --theme-brand-50: oklch(98% 0.016 73.684);
+  --theme-brand-100: oklch(95.4% 0.038 75.164);
+  --theme-brand-200: oklch(90.1% 0.076 70.697);
+  --theme-brand-300: oklch(83.7% 0.128 66.29);
+  --theme-brand-400: oklch(75% 0.183 55.934);
+  --theme-brand-500: oklch(67% 0.13 38.76);
+  --theme-brand-600: oklch(67% 0.19 41.116);
+  --theme-brand-700: oklch(55.3% 0.195 38.402);
+  --theme-brand-800: oklch(47% 0.157 37.304);
+  --theme-brand-900: oklch(40.8% 0.123 38.172);
+  --theme-brand-950: oklch(26.6% 0.079 36.259);
+  --theme-danger-50: oklch(97.1% 0.013 17.38);
+  --theme-danger-100: oklch(93.6% 0.032 17.717);
+  --theme-danger-200: oklch(88.5% 0.062 18.334);
+  --theme-danger-300: oklch(80.8% 0.114 19.571);
+  --theme-danger-400: oklch(70.4% 0.191 22.216);
+  --theme-danger-500: oklch(63.7% 0.237 25.331);
+  --theme-danger-600: oklch(57.7% 0.245 27.325);
+  --theme-danger-700: oklch(50.5% 0.213 27.518);
+  --theme-danger-800: oklch(44.4% 0.177 26.899);
+  --theme-danger-900: oklch(39.6% 0.141 25.723);
+  --theme-danger-950: oklch(25.8% 0.092 26.042);
+  --theme-surface: #ffffff;
+  --theme-offline: #9ca3af;
+
   --background: #ffffff;
   --foreground: #171717;
 }
 
 @theme inline {
+  /* Shared palette for backgrounds, borders, rings and gradients. */
+  --color-success-400: var(--theme-success-400);
+
+  --color-brand-50: var(--theme-brand-50);
+  --color-brand-100: var(--theme-brand-100);
+  --color-brand-200: var(--theme-brand-200);
+  --color-brand-300: var(--theme-brand-300);
+  --color-brand-400: var(--theme-brand-400);
+  --color-brand-500: var(--theme-brand-500);
+  --color-brand-600: var(--theme-brand-600);
+  --color-brand-700: var(--theme-brand-700);
+  --color-brand-800: var(--theme-brand-800);
+  --color-brand-900: var(--theme-brand-900);
+  --color-brand-950: var(--theme-brand-950);
+  --color-danger-50: var(--theme-danger-50);
+  --color-danger-100: var(--theme-danger-100);
+  --color-danger-200: var(--theme-danger-200);
+  --color-danger-300: var(--theme-danger-300);
+  --color-danger-400: var(--theme-danger-400);
+  --color-danger-500: var(--theme-danger-500);
+  --color-danger-600: var(--theme-danger-600);
+  --color-danger-700: var(--theme-danger-700);
+  --color-danger-800: var(--theme-danger-800);
+  --color-danger-900: var(--theme-danger-900);
+  --color-danger-950: var(--theme-danger-950);
+  --color-surface: var(--theme-surface);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
   /* Text colors: shared by Tailwind text-* and placeholder-* utilities. */
-  --color-content: var(--color-green-800);
-  --color-heading: var(--color-green-700);
-  --color-secondary: var(--color-green-600);
-  --color-accent: var(--color-green-500);
-  --color-muted: var(--color-green-400);
-  --color-error: var(--color-red-500);
-  --color-inverse: var(--color-white);
-  --color-content-strong: var(--color-green-900);
-  --color-error-strong: var(--color-red-600);
-  --color-group-label: var(--color-emerald-800);
-  --color-offline: var(--color-gray-400);
-  --color-input-hint: var(--color-green-300);
+  --color-content: var(--theme-brand-800);
+  --color-heading: var(--theme-brand-700);
+  --color-secondary: var(--theme-brand-600);
+  --color-accent: var(--theme-brand-500);
+  --color-muted: var(--theme-brand-400);
+  --color-error: var(--theme-danger-500);
+  --color-inverse: #ffffff;
+  --color-content-strong: var(--theme-brand-900);
+  --color-error-strong: var(--theme-danger-600);
+  --color-group-label: var(--theme-brand-800);
+  --color-offline: var(--theme-offline);
+  --color-input-hint: var(--theme-brand-300);
 
   --font-sans: var(--font-app-sans);
   --font-mono: var(--font-app-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root { color-scheme: light; }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: rgb(30, 30, 30);
+  --foreground: #ededed;
+  --theme-surface: rgb(30, 30, 30);
+  --theme-brand-50: rgb(30, 30, 30);
+  --theme-brand-100: #303030;
+  --theme-brand-200: #4a4a4a;
+  --theme-brand-300: #a3a3a3;
+  --theme-brand-400: #f0a782;
+  --theme-brand-600: #f0a782;
+  --theme-brand-700: #f5c2a8;
+  --theme-brand-800: #f7d9c9;
+  --theme-brand-900: #f5f5f5;
+  --theme-danger-50: #3a2424;
+  --theme-danger-100: #4a2929;
+  --theme-danger-200: #874747;
 }
 
 body {
