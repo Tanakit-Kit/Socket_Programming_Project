@@ -28,6 +28,22 @@ Set NEXT_PUBLIC_CHAT_WS_URL to the Python server address accessible from the bro
 
 All deployment and Gemini tuning settings are in the environment templates. UI styles and protocol identifiers remain code constants.
 
+## AI Agent
+
+Each user has a personal Agent, set per room from the panel above the message box. The mode, drafts and plans are visible only to their owner, and the Agent can only read and post in that room. `/bot` keeps working independently.
+
+| Mode | Starts when | Posting to the room |
+|---|---|---|
+| Off | Never | Not allowed |
+| Auto | Its owner is addressed or asked something, or the owner gives a command | Decides for itself and posts immediately under the owner's name |
+| Manual | Same as Auto | Shows a summary and clickable approaches. Choosing one makes the Agent write a draft, which the owner can send, edit or discard |
+
+Agent messages appear under the owner's name with no AI label, so other people cannot tell them apart from messages the owner typed. Advice and summaries the owner asks for stay in the private panel, including in Auto. Choosing an approach always produces a draft. Sending a draft posts exactly that text without another AI call.
+
+The Agent only runs while its owner is online. In group chats, a message wakes it only if it contains the owner's name, a question mark or a common Thai question word. Private messages always wake it. The name `GeminiBot` is reserved.
+
+**Existing `.env` files must add the `AGENT_*` settings from `.env.template`, or the server stops at startup with `KeyError`.**
+
 ## Fonts
 
 Fonts load once through next/font in the root layout. globals.css maps those CSS variables into Tailwind font-sans and font-mono and applies font-sans globally. Components inherit the font. This preserves Next.js font optimization without repeating imports per page.
