@@ -772,7 +772,7 @@ export default function Home() {
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    connected ? "bg-brand-500 animate-pulse" : "bg-danger-500"
+                    connected ? "bg-success-400 animate-pulse" : "bg-danger-500"
                   }`}
                 />
                 {connected ? "Online" : "Offline"}
@@ -1060,7 +1060,7 @@ export default function Home() {
                     <p className="text-xs text-accent mt-0.5">
                       สถานะ:{" "}
                       {onlineUsers.includes(activeRoom.target) ? (
-                        <span className="text-secondary font-medium">● ออนไลน์</span>
+                        <span className="text-success-400 font-medium">● ออนไลน์</span>
                       ) : (
                         <span className="text-offline">○ ออฟไลน์ (ส่งข้อความทิ้งไว้ได้)</span>
                       )}

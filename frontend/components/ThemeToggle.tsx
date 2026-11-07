@@ -18,13 +18,11 @@ function getTheme() {
 
 export default function ThemeToggle() {
   const dark = useSyncExternalStore(subscribe, getTheme, () => false);
-  useEffect(() => {
-    document.documentElement.dataset.theme = dark ? "dark" : "light";
-  }, [dark]);
 
   function toggle() {
     document.documentElement.dataset.theme = dark ? "light" : "dark";
-    try { localStorage.setItem("chat-theme", dark ? "light" : "dark"); } catch { /* Storage may be disabled. */ }
+    try { localStorage.setItem("chat-theme", dark ? "light" : "dark"); }
+    catch { /* Storage may be disabled. */ }
     window.dispatchEvent(new Event("theme-change"));
   }
 

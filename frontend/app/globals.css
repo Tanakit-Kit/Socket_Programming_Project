@@ -4,7 +4,7 @@
 :root {
   /* Change this palette to retheme the entire chat UI. */
 
-  --theme-success-400: oklch(80.443% 0.22458 138.562);
+  --theme-success-400: oklch(60% 0.15 148.562);
 
   --theme-brand-50: oklch(98% 0.016 73.684);
   --theme-brand-100: oklch(95.4% 0.038 75.164);
@@ -28,10 +28,10 @@
   --theme-danger-800: oklch(44.4% 0.177 26.899);
   --theme-danger-900: oklch(39.6% 0.141 25.723);
   --theme-danger-950: oklch(25.8% 0.092 26.042);
-  --theme-surface: #ffffff;
+  --theme-surface: #f9f9f9;
   --theme-offline: #9ca3af;
 
-  --background: #ffffff;
+  --background: #fafafa;
   --foreground: #171717;
 }
 
@@ -90,8 +90,8 @@
   color-scheme: dark;
   --background: rgb(30, 30, 30);
   --foreground: #ededed;
-  --theme-surface: rgb(30, 30, 30);
-  --theme-brand-50: rgb(30, 30, 30);
+  --theme-surface: rgb(45, 45, 45);
+  --theme-brand-50: rgb(40, 40, 40);
   --theme-brand-100: #303030;
   --theme-brand-200: #4a4a4a;
   --theme-brand-300: #a3a3a3;
