@@ -17,7 +17,6 @@ Set GEMINI_API_KEY in `.env` to enable the bot. Existing SQLite databases are mi
 In another terminal:
 
 ```sh
-conda activate webdev
 cd frontend
 cp .env.template .env.local
 npm ci

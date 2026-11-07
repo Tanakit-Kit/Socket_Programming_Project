@@ -799,9 +799,9 @@ export default function Home() {
       {/* Main Content Split */}
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         {/* Left Sidebar: Online Clients (R4) & Chat Groups (R8, R9, R10) */}
-        <aside className="w-80 min-h-0 bg-surface border-r border-brand-100 shrink-0 flex flex-col overflow-hidden">
+        <aside className="w-80 min-h-0 bg-brand-25 border-r-2 border-brand-100 shrink-0 flex flex-col overflow-hidden">
           {/* [R4] Online Clients Section */}
-          <div className="p-4 border-b border-brand-100 flex min-h-0 flex-col max-h-[45%]">
+          <div className="p-4 border-b-2 border-brand-100 flex min-h-0 flex-col max-h-[45%]">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xs font-bold text-heading uppercase tracking-wider">
                 Users ({onlineUsers.length} Online Now)
@@ -1152,7 +1152,7 @@ export default function Home() {
           )}
 
           {/* Bottom Message Input Bar (R6) */}
-          <div className="bg-surface border-t border-brand-100 p-4 shrink-0">
+          <div className="bg-surface border-t-2 border-brand-100 p-4 shrink-0">
             <div className="flex gap-2 max-w-3xl mx-auto">
               <input
                 type="text"
