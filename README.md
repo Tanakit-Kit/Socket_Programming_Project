@@ -8,6 +8,9 @@ Run from the repository root:
 
 ```sh
 cp .env.template .env
+# with uv
+uv run python server.py
+# or if you're not using uv
 python -m pip install -r requirements.txt
 python server.py
 ```
@@ -17,7 +20,6 @@ Set GEMINI_API_KEY in `.env` to enable the bot. Existing SQLite databases are mi
 In another terminal:
 
 ```sh
-conda activate webdev
 cd frontend
 cp .env.template .env.local
 npm ci
