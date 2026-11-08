@@ -27,8 +27,8 @@ _load_env_file()
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 # โมเดล Free Tier ของ Google AI Studio (เรียงจากใหม่/เร็ว → เก่า/สำรอง)
-GEMINI_MODELS = os.environ["GEMINI_MODELS"].split(",")
-GEMINI_BASE_URL = os.environ["GEMINI_BASE_URL"]
+GEMINI_MODELS = os.getenv('GEMINI_MODELS', 'gemini-3.5-flash-lite,gemini-2.5-flash').split(",")
+GEMINI_BASE_URL = os.getenv('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta')
 
 _gemini_available = None
 _active_model = None
@@ -44,7 +44,7 @@ def load_gemini_models():
             headers={'Content-Type': 'application/json'},
             method='GET'
         )
-        with urllib.request.urlopen(req, timeout=float(os.environ["GEMINI_TIMEOUT"])) as resp:
+        with urllib.request.urlopen(req, timeout=float(os.getenv('GEMINI_TIMEOUT', '15'))) as resp:
             data = json.loads(resp.read().decode('utf-8'))
         models = data.get('models', [])
         _gemini_available = set(m.get('name', '').replace('models/', '') for m in models)
@@ -63,7 +63,7 @@ def gemini_candidate_models():
     return ordered
 
 def build_gemini_payload(question, chat_history):
-    recent = chat_history[-int(os.environ["GEMINI_CONTEXT_MESSAGES"]):]
+    recent = chat_history[-int(os.getenv('GEMINI_CONTEXT_MESSAGES', '20')):]
     context_lines = []
     for entry in recent:
         context_lines.append(f"{entry['sender']} -> {entry['target']}: {entry['message']}")
@@ -78,7 +78,7 @@ def build_gemini_payload(question, chat_history):
     )
     return {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": float(os.environ["GEMINI_TEMPERATURE"]), "maxOutputTokens": int(os.environ["GEMINI_MAX_OUTPUT_TOKENS"])},
+        "generationConfig": {"temperature": float(os.getenv('GEMINI_TEMPERATURE', '0.7')), "maxOutputTokens": int(os.getenv('GEMINI_MAX_OUTPUT_TOKENS', '2048'))},
     }
 
 def extract_gemini_text(result):
@@ -100,7 +100,7 @@ def _try_models(payload, is_usable):
 
     for model_name in gemini_candidate_models():
         url = f'{GEMINI_BASE_URL}/models/{model_name}:generateContent?key={GEMINI_API_KEY}'
-        for attempt in range(int(os.environ["GEMINI_ATTEMPTS"])):
+        for attempt in range(int(os.getenv('GEMINI_ATTEMPTS', '2'))):
             try:
                 req = urllib.request.Request(
                     url,
@@ -108,7 +108,7 @@ def _try_models(payload, is_usable):
                     headers={'Content-Type': 'application/json'},
                     method='POST'
                 )
-                with urllib.request.urlopen(req, timeout=float(os.environ["GEMINI_TIMEOUT"])) as resp:
+                with urllib.request.urlopen(req, timeout=float(os.getenv('GEMINI_TIMEOUT', '15'))) as resp:
                     result = json.loads(resp.read().decode('utf-8'))
                 if is_usable(result):
                     if _active_model != model_name:
@@ -130,7 +130,7 @@ def _try_models(payload, is_usable):
                 last_error = e
                 if e.code in (429, 503) and attempt == 0:
                     print(f"[GEMINI] {model_name} ตอบ {e.code} ลองใหม่ใน 3 วินาที...")
-                    time.sleep(float(os.environ["GEMINI_RETRY_DELAY"]))
+                    time.sleep(float(os.getenv('GEMINI_RETRY_DELAY', '3')))
                     continue
                 print(f"[GEMINI] {model_name} ข้อผิดพลาด HTTP {e.code}: {body[:200]}")
                 break
@@ -159,7 +159,7 @@ def call_gemini_with_tools(system, contents, tools):
         "systemInstruction": {"parts": [{"text": system}]},
         "contents": contents,
         "tools": [{"functionDeclarations": tools}],
-        "generationConfig": {"temperature": float(os.environ["GEMINI_TEMPERATURE"]), "maxOutputTokens": int(os.environ["GEMINI_MAX_OUTPUT_TOKENS"])},
+        "generationConfig": {"temperature": float(os.getenv('GEMINI_TEMPERATURE', '0.7')), "maxOutputTokens": int(os.getenv('GEMINI_MAX_OUTPUT_TOKENS', '2048'))},
     }
     result, last_error = _try_models(payload, _model_content)
     if result is not None:

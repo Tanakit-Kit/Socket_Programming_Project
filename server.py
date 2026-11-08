@@ -10,12 +10,12 @@ import uuid
 from datetime import datetime
 import websockets
 
-HOST = os.environ["CHAT_HOST"]
-PORT = int(os.environ["CHAT_PORT"])
-DB_FILE = os.environ["CHAT_DB_FILE"]
-AGENT_MAX_STEPS = int(os.environ["AGENT_MAX_STEPS"])
-AGENT_DEBOUNCE_SECONDS = float(os.environ["AGENT_DEBOUNCE_SECONDS"])
-AGENT_MAX_RUNS_PER_MINUTE = int(os.environ["AGENT_MAX_RUNS_PER_MINUTE"])
+HOST = os.getenv('CHAT_HOST', '0.0.0.0')
+PORT = int(os.getenv('CHAT_PORT', '5000'))
+DB_FILE = os.getenv('CHAT_DB_FILE', 'chat_history.db')
+AGENT_MAX_STEPS = int(os.getenv('AGENT_MAX_STEPS', '5'))
+AGENT_DEBOUNCE_SECONDS = float(os.getenv('AGENT_DEBOUNCE_SECONDS', '2'))
+AGENT_MAX_RUNS_PER_MINUTE = int(os.getenv('AGENT_MAX_RUNS_PER_MINUTE', '6'))
 
 BOT_NAME = "GeminiBot"
 AGENT_MODES = ("off", "auto", "manual")
@@ -416,7 +416,7 @@ async def run_agent_task(owner, room_type, room, phase, instruction, triggered, 
             read_history=lambda: agent_room_history(owner, room_type, room),
             post_message=post, propose=propose, generate=call_gemini_with_tools,
             max_steps=AGENT_MAX_STEPS,
-            context_limit=int(os.environ["GEMINI_CONTEXT_MESSAGES"]),
+            context_limit=int(os.getenv('GEMINI_CONTEXT_MESSAGES', '20')),
         )
         if triggered or result.posts or result.proposed:
             return

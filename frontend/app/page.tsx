@@ -58,7 +58,7 @@ export default function Home() {
   const knownPrivateRooms = useRef(new Set<string>());
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [serverUrl, setServerUrl] = useState(process.env.NEXT_PUBLIC_CHAT_WS_URL || "");
+  const [serverUrl, setServerUrl] = useState(process.env.NEXT_PUBLIC_CHAT_WS_URL || "ws://localhost:5000");
   const [reconnectTrigger, setReconnectTrigger] = useState(0);
   const [connected, setConnected] = useState(false);
   const [username, setUsername] = useState("");
@@ -235,7 +235,7 @@ export default function Home() {
             setUsername(registeredName);
             setRegisterOpen(false);
             setRegError("");
-            document.title = `Chat Application - ผู้ใช้: ${registeredName}`;
+            document.title = `ช่องclaude: ${registeredName}`;
           } else {
             setRegError(msg.message || "ชื่อนี้กำลังออนไลน์อยู่ กรุณาใช้ชื่ออื่น");
           }
