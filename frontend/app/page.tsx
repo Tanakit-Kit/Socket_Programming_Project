@@ -660,9 +660,9 @@ export default function Home() {
         <div className="fixed right-4 top-4 z-50"><ThemeToggle /></div>
         <div className="w-full max-w-md bg-surface rounded-3xl shadow-xl p-8 border border-brand-100">
           <div className="flex items-center gap-3 mb-2">
-            <Image src="/brand-logo.png" alt="ช่องclaude Chat logo" width={40} height={40} className="shrink-0 rounded-xl object-contain" priority />
+            <Image src="/brand-logo.png" alt="ช่องClaude Chat logo" width={40} height={40} className="shrink-0 rounded-xl object-contain" priority />
             <div>
-              <h1 className="text-2xl font-bold text-content">ช่องclaude Chat</h1>
+              <h1 className="text-2xl font-bold text-content">ช่องClaude Chat</h1>
               <p className="text-xs text-accent">Socket Programming Project</p>
             </div>
           </div>
@@ -761,10 +761,10 @@ export default function Home() {
       {/* Top Header */}
       <header className="h-16 bg-surface border-b border-brand-100 flex items-center justify-between px-6 shrink-0 shadow-2xs">
         <div className="flex items-center gap-3">
-          <Image src="/brand-logo.png" alt="ช่องclaude Chat logo" width={32} height={32} className="shrink-0 rounded-xl object-contain" priority />
+          <Image src="/brand-logo.png" alt="ช่องClaude Chat logo" width={32} height={32} className="shrink-0 rounded-xl object-contain" priority />
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-content font-bold">ช่องclaude Chat</span>
+              <span className="text-content font-bold">ช่องClaude Chat</span>
               <span
                 className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${
                   connected ? "bg-brand-100 text-heading" : "bg-danger-100 text-error-strong"
@@ -784,7 +784,9 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 px-3 py-1.5 rounded-xl">
-            <span className="text-sm">👤</span>
+            <div className="w-5 h-5 shrink-0 rounded-full bg-brand-100 border border-success-400 border-2 flex items-center justify-center text-[10px] font-bold text-heading select-none">
+              {username.charAt(0).toUpperCase()}
+            </div>
             <span className="text-content text-sm font-semibold">{username}</span>
           </div>
           <button
@@ -810,7 +812,13 @@ export default function Home() {
             </div>
 
             <div className="space-y-1 overflow-y-auto overscroll-contain min-h-0 flex-1 pr-1">
-              {allUsers.map((u) => {
+              {[
+                ...allUsers
+                  .filter((u) => onlineUsers.includes(u) && u === username), // ตัวเอง online บนสุด
+                ...allUsers
+                  .filter((u) => onlineUsers.includes(u) && u !== username), // คนอื่นที่ online
+                ...allUsers.filter((u) => !onlineUsers.includes(u)), // offline ท้ายสุด
+              ].map((u) => {
                 const isMe = u === username;
                 const isOnline = onlineUsers.includes(u);
                 const isSelected = !isMe && selectedUser === u;
@@ -831,13 +839,20 @@ export default function Home() {
                     }}
                     className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm transition border ${
                       isMe
-                        ? "bg-brand-50/60 border-brand-100 text-heading cursor-default"
+                        ? "bg-brand-100 border-brand-200 text-heading font-medium cursor-default shadow-sm"
                         : isSelected
                         ? "bg-brand-100/80 border-brand-300 text-content-strong font-medium cursor-pointer"
                         : "border-transparent hover:bg-brand-50 text-content cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
+                      <div className={`w-6 h-6 shrink-0 rounded-full bg-brand-100 flex items-center justify-center text-heading font-bold text-xs select-none border-2 ${
+                        isOnline
+                          ? "border-success-400"
+                          : "border-offline"
+                      }`}>
+                        {u.charAt(0).toUpperCase()}
+                      </div>
                       <span aria-label={isOnline ? "Online" : "Offline"} title={isOnline ? "Online" : "Offline"} className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-success-400" : "bg-offline"}`} />
                       <span className="truncate">
                         {u}
@@ -903,7 +918,7 @@ export default function Home() {
                   >
                     <div className="flex justify-between items-center gap-2">
                       <span className="font-semibold truncate">
-                        {member ? "✓ " : ""}
+                        {member ? " " : ""}
                         {gname}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -912,9 +927,22 @@ export default function Home() {
                             {unreadCount}
                           </span>
                         )}
-                        <span className="text-[10px] bg-brand-100 text-heading px-2 py-0.5 rounded-full font-medium">
-                          {members.length} คน
-                        </span>
+                        <div className="flex items-center gap-1">
+                          {members.slice(0, 3).map((m) => (
+                            <div
+                              key={m}
+                              className="w-5 h-5 shrink-0 rounded-full bg-brand-100 border border-surface border-2 flex items-center justify-center text-[10px] font-bold text-heading select-none"
+                              title={m}
+                            >
+                              {m.charAt(0).toUpperCase()}
+                            </div>
+                          ))}
+                          {members.length > 3 && (
+                            <div className="w-5 h-5 shrink-0 rounded-full bg-brand-500 border border-surface border-2 flex items-center justify-center text-[10px] font-bold text-inverse select-none">
+                              +{members.length - 3}
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -932,9 +960,12 @@ export default function Home() {
                         </button>
                       </div>
                     </div>
-                    <div className="mt-1 text-[11px] text-secondary truncate">
-                      สมาชิก: [{members.join(", ")}]
-                    </div>
+                    {members.length > 0 && (
+                      <div className="mt-1 flex items-center gap-1 text-[10px] text-secondary">
+                        <span className="font-medium">{members.length} คน</span>
+                        <span>({members.join(", ")})</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1068,16 +1099,7 @@ export default function Home() {
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleRefreshHistory}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-brand-200 text-heading hover:bg-brand-50 transition cursor-pointer flex items-center gap-1"
-                  title="ดึงประวัติการสนทนาจากฐานข้อมูล"
-                >
-                  <span>🔄</span>
-                  <span>ดึงประวัติแชท</span>
-                </button>
-              </div>
+                </div>
 
               {/* Scrollable Messages Area (R6) */}
               <div
