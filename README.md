@@ -8,6 +8,9 @@ Run from the repository root:
 
 ```sh
 cp .env.template .env
+# with uv
+uv run python server.py
+# or if you're not using uv
 python -m pip install -r requirements.txt
 python server.py
 ```
