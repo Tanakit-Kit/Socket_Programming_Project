@@ -44,11 +44,11 @@
   --color-brand-50: var(--theme-brand-50);
   --color-brand-100: var(--theme-brand-100);
   --color-brand-200: var(--theme-brand-200);
-  --color-brand-300: var(--theme-brand-800);
-  --color-brand-400: var(--theme-brand-800);
+  --color-brand-300: var(--theme-brand-300);
+  --color-brand-400: var(--theme-brand-400);
   --color-brand-500: var(--theme-brand-500);
-  --color-brand-600: var(--theme-brand-800);
-  --color-brand-700: var(--theme-brand-800);
+  --color-brand-600: var(--theme-brand-600);
+  --color-brand-700: var(--theme-brand-700);
   --color-brand-800: var(--theme-brand-800);
   --color-brand-900: var(--theme-brand-900);
   --color-brand-950: var(--theme-brand-950);
@@ -70,17 +70,17 @@
 
   /* Text colors: shared by Tailwind text-* and placeholder-* utilities. */
   --color-content: var(--theme-brand-800);
-  --color-heading: var(--theme-brand-800);
-  --color-secondary: var(--theme-brand-800);
+  --color-heading: var(--theme-brand-700);
+  --color-secondary: var(--theme-brand-600);
   --color-accent: var(--theme-brand-500);
-  --color-muted: var(--theme-brand-800);
+  --color-muted: var(--theme-brand-400);
   --color-error: var(--theme-danger-500);
   --color-inverse: #ffffff;
   --color-content-strong: var(--theme-brand-900);
   --color-error-strong: var(--theme-danger-600);
   --color-group-label: var(--theme-brand-800);
   --color-offline: var(--theme-offline);
-  --color-input-hint: var(--theme-brand-800);
+  --color-input-hint: var(--theme-brand-300);
 
   --font-sans: "SF Pro Text", "SF Thonburi", var(--font-app-sans), var(--font-app-thai-sans);
   --font-mono: var(--font-app-mono);
@@ -113,29 +113,28 @@ body {
   @apply font-sans;
 }
 
-/* Custom scrollbar สำหรับหน้าต่างแชทและรายชื่อผู้ใช้ */
+/* Custom scrollbar - สีเทาเข้ม */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #252525;
+  border: 1px solid #252525;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--theme-brand-800);
+  background: #424242;
   border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--theme-brand-800);
+  background: #616161;
 }
-::-webkit-scrollbar-corner {
-  background: transparent;
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #252525;
 }
-
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--theme-brand-800) transparent;
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #424242;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #616161;
 }
