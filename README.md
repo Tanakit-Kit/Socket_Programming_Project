@@ -7,7 +7,6 @@ Python owns messaging, SQLite persistence and Gemini. Next.js provides the brows
 Run from the repository root:
 
 ```sh
-cp .env.template .env
 # with uv
 uv run python server.py
 # or if you're not using uv
@@ -21,14 +20,16 @@ In another terminal:
 
 ```sh
 cd frontend
-cp .env.template .env.local
+# if you are about to host the app
+# export the variable HOST_IP=<your ip>
+# in the current terminal
 npm ci
 npm run dev
 ```
 
 Set NEXT_PUBLIC_CHAT_WS_URL to the Python server address accessible from the browser. For HTTPS deployments use wss:// with a TLS reverse proxy. Public Next.js settings are embedded at build time; never put API keys in them. Rebuild after changing them.
 
-All deployment and Gemini tuning settings are in the environment templates. UI styles and protocol identifiers remain code constants.
+Environment files are optional. The templates document overrides; application defaults work without copying either template. Exported variables take precedence over `.env` values. UI styles and protocol identifiers remain code constants.
 
 ## AI Agent
 
@@ -44,7 +45,7 @@ Agent messages appear under the owner's name with no AI label, so other people c
 
 The Agent only runs while its owner is online. In group chats, a message wakes it only if it contains the owner's name, a question mark or a common Thai question word. Private messages always wake it. The name `GeminiBot` is reserved.
 
-**Existing `.env` files must add the `AGENT_*` settings from `.env.template`, or the server stops at startup with `KeyError`.**
+All agent settings have defaults; environment overrides are optional.
 
 ## Fonts
 
@@ -60,3 +61,21 @@ npm run build
 ```
 
 Private bot replies store the conversation participants separately from the displayed GeminiBot sender. Live replies include a recipient-specific peer field; history uses the same conversation keys. Bot context is scoped to the current conversation and the blocking API call runs in a worker thread.
+
+## Optional configuration
+
+For local development, run the backend and frontend without creating `.env` files.
+Normal chat works without a Gemini key; Gemini features report that configuration is required.
+To enable Gemini, export `GEMINI_API_KEY` or set it in an optional root `.env`.
+Python reads the root `.env` when started from the repository root. Next.js reads environment files in `frontend/`.
+
+For LAN hosting, export the host address in the frontend terminal:
+
+```sh
+export HOST_IP=<your_ip>
+npm run dev -- --hostname 0.0.0.0
+```
+
+Next.js derives the WebSocket URL and allowed development origin from `HOST_IP`, defaulting to `localhost`.
+Explicit `NEXT_PUBLIC_CHAT_WS_URL` and `DEV_ALLOWED_ORIGINS` overrides take precedence over that derivation.
+For production, export the address before `npm run build`; the public WebSocket URL is embedded at build time.

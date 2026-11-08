@@ -58,7 +58,7 @@ export default function Home() {
   const knownPrivateRooms = useRef(new Set<string>());
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [serverUrl, setServerUrl] = useState(process.env.NEXT_PUBLIC_CHAT_WS_URL || "");
+  const [serverUrl, setServerUrl] = useState(process.env.NEXT_PUBLIC_CHAT_WS_URL || "ws://localhost:5000");
   const [reconnectTrigger, setReconnectTrigger] = useState(0);
   const [connected, setConnected] = useState(false);
   const [username, setUsername] = useState("");

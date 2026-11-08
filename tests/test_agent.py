@@ -6,10 +6,6 @@ import time
 import unittest
 import json
 from pathlib import Path
-for line in Path('.env.template').read_text().splitlines():
-    if line and not line.startswith('#'):
-        key, value = line.split('=', 1)
-        os.environ.setdefault(key, value)
 import server
 from agent_service import should_wake
 
