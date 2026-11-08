@@ -17,7 +17,7 @@ const appMono = MonoFont({
 });
 
 export const metadata: Metadata = {
-  title: "Chat Application",
+  title: "ช่องclaude Chat",
   description: "Private and group chat with Gemini",
 };
 

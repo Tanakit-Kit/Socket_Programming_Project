@@ -235,7 +235,7 @@ export default function Home() {
             setUsername(registeredName);
             setRegisterOpen(false);
             setRegError("");
-            document.title = `Chat Application - ผู้ใช้: ${registeredName}`;
+            document.title = `ช่องclaude: ${registeredName}`;
           } else {
             setRegError(msg.message || "ชื่อนี้กำลังออนไลน์อยู่ กรุณาใช้ชื่ออื่น");
           }
