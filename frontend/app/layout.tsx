@@ -29,20 +29,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var saved = localStorage.getItem('chat-theme');
-                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var theme = saved || ( prefersDark ? 'dark' : 'light' );
-                  document.documentElement.dataset.theme = theme;
-                } catch (e) {}
-              })();
-            `
-          }}  
-        />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                var saved = localStorage.getItem('chat-theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = saved || ( prefersDark ? 'dark' : 'light' );
+                document.documentElement.dataset.theme = theme;
+              } catch (e) {}
+            })();
+          `
+        }}  
+      />
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

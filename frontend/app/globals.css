@@ -112,3 +112,29 @@ body {
   color: var(--foreground);
   @apply font-sans;
 }
+
+/* Custom scrollbar - สีเทาเข้ม */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #252525;
+  border: 1px solid #252525;
+}
+::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #616161;
+}
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #252525;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #424242;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #616161;
+}
